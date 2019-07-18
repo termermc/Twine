@@ -1,0 +1,52 @@
+# IP/address to bind to
+ip: "127.0.0.1"
+
+# Port to run server on
+port: 8080
+
+# Java Keystore path to use to enable HTTPS
+# Leave empty to ignore
+keystore: ""
+
+# Keystore password
+keystorePassword: "drowssap"
+
+# Enable HTTP logging
+httpLogging: true
+
+# The file to where requests are logged (if HTTP logging is enabled)
+httpLog: "access.log"
+
+# Enable GZIP compression
+compression: false
+
+# Static path
+static: "static/"
+
+# Enable/disable embedded scripting
+scripting: false
+
+# Whether to print embedded scripting exceptions as if they called out.append
+scriptExceptions: false
+
+# Whether traffic should be redirected to an HTTPS version
+# Has no effect if there is no keystore
+httpsRedirect: false
+
+# Which port to run HTTPS redirector on
+httpsRedirectPort: 80
+
+# Maximum HTTP request body size (kilobytes)
+maxBodySize: 10240
+
+# Whether to send caching headers for static content
+staticCaching: true
+
+# Whethet the server should provide a file browser for static resources
+staticBrowser: false
+
+# Whether to load modules even if they specify an incompatible Twine version
+ignoreModuleCheck: false
+
+# Enable Vert.x sessions
+sessions: true
