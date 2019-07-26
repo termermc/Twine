@@ -36,7 +36,7 @@ httpsRedirect: false
 # Which port to run HTTPS redirector on
 httpsRedirectPort: 80
 
-# Maximum HTTP request body size (kilobytes)
+# Maximum HTTP request body size (bytes)
 maxBodySize: 10240
 
 # Whether to send caching headers for static content
