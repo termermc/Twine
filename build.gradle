@@ -41,7 +41,7 @@ dependencies {
 	compile group: 'org.beanshell', name: 'bsh', version: '2.0b5'
 	
 	// SLF4J dependencies
-	compile group: 'org.slf4j', name: 'api', version: '1.7.2'
+	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.26'
 	testCompile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.26'
 	
 	// Database dependencies
