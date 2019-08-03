@@ -42,7 +42,7 @@ dependencies {
 	
 	// SLF4J dependencies
 	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.26'
-	testCompile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.26'
+	compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.26'
 	
 	// Database dependencies
 	compile group: 'org.postgresql', name: 'postgresql', version: '42.2.6'
