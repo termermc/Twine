@@ -17,7 +17,6 @@ public class Callback {
 	private ArrayList<CallbackAction> _failCallbacks = new ArrayList<CallbackAction>();
 	private int _execIndex = 0;
 	private boolean _async = false;
-	private boolean _running = false;
 	
 	/**
 	 * Creates a new Callback object
@@ -91,16 +90,6 @@ public class Callback {
 	}
 	
 	/**
-	 * Returns whether callbacks are still running.
-	 * Not that this may not be wholly accurate, as it only checks if end() or next() without a following callback has been called.
-	 * @return whether callbacks are still running
-	 * @since 1.0-alpha
-	 */
-	public boolean running() {
-		return _running;
-	}
-	
-	/**
 	 * Executes the next callback, if any
 	 * @return this Callback, to be used fluently
 	 * @since 1.0-alpha
@@ -125,7 +114,7 @@ public class Callback {
 				}
 			}
 		} else {
-			_running = false;
+			this.notifyAll();
 		}
 		return this;
 	}
@@ -136,10 +125,11 @@ public class Callback {
 	 * @since 1.0-alpha
 	 */
 	public void end() {
+		System.out.println("ENDED");
 		_callbacks.clear();
 		_failCallbacks.clear();
 		_execIndex = 0;
-		_running = false;
+		this.notifyAll();
 	}
 	
 	/**
@@ -148,33 +138,12 @@ public class Callback {
 	 * @since 1.0-alpha
 	 */
 	public Callback execute() {
+		System.out.println("execute() "+Thread.currentThread().getName());
 		if(_callbacks.size() > 0) {
-			_running = true;
-			if(_async) {
-				ServerManager.vertx().executeBlocking(f -> {
-					_callbacks.get(0).run(this);
-				}, r -> {});
-			} else {
+			ServerManager.vertx().executeBlocking(f -> {
+				System.out.println("execute() async "+Thread.currentThread().getName());
 				_callbacks.get(0).run(this);
-			}
-		}
-		return this;
-	}
-	
-	/**
-	 * Blocks the current thread until all callbacks are done executing.
-	 * This may not be wholly accurate, as it only waits for an end() or a next() without a following callback.
-	 * Every 10ms the method will check if callbacks are finished, and if not, will go to sleep for 10ms
-	 * @return this Callback, to be used fluently
-	 * @since 1.0-alpha
-	 */
-	public Callback await() {
-		while(_running) {
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			}, r -> {});
 		}
 		return this;
 	}
