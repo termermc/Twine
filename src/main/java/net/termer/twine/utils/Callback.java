@@ -125,7 +125,6 @@ public class Callback {
 	 * @since 1.0-alpha
 	 */
 	public void end() {
-		System.out.println("ENDED");
 		_callbacks.clear();
 		_failCallbacks.clear();
 		_execIndex = 0;
@@ -138,10 +137,8 @@ public class Callback {
 	 * @since 1.0-alpha
 	 */
 	public Callback execute() {
-		System.out.println("execute() "+Thread.currentThread().getName());
 		if(_callbacks.size() > 0) {
 			ServerManager.vertx().executeBlocking(f -> {
-				System.out.println("execute() async "+Thread.currentThread().getName());
 				_callbacks.get(0).run(this);
 			}, r -> {});
 		}
