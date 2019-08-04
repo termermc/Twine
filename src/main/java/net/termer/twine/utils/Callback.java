@@ -135,9 +135,13 @@ public class Callback {
 	 */
 	public Callback execute() {
 		if(_callbacks.size() > 0) {
-			ServerManager.vertx().executeBlocking(f -> {
+			if(_async) {
+				ServerManager.vertx().executeBlocking(f -> {
+					_callbacks.get(0).run(this);
+				}, r -> {});
+			} else {
 				_callbacks.get(0).run(this);
-			}, r -> {});
+			}
 		}
 		return this;
 	}
