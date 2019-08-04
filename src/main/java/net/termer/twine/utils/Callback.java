@@ -113,8 +113,6 @@ public class Callback {
 					fail(e);
 				}
 			}
-		} else {
-			this.notifyAll();
 		}
 		return this;
 	}
@@ -128,7 +126,6 @@ public class Callback {
 		_callbacks.clear();
 		_failCallbacks.clear();
 		_execIndex = 0;
-		this.notifyAll();
 	}
 	
 	/**
