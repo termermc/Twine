@@ -18,6 +18,7 @@ public class Events {
 	 */
 	public static enum Type {
 		CONFIG_RELOAD,
+		SERVER_START,
 		SERVER_STOP
 	}
 	

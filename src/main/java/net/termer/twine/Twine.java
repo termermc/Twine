@@ -82,15 +82,20 @@ public class Twine {
 				// Load all configurations (reload is just load when it's first called)
 				reloadConfigurations();
 				
-				// Start server
-				logger().info("Starting server...");
-				ServerManager.start();
+				// Initialize server so components will be available for modules
+				ServerManager.init();
 				
 				// Load modules
 				if(!_args.flag('m') && !_args.option("skip-modules")) {
 					logger().info("Loading modules...");
 					ModuleManager.loadModules();
 				}
+				
+				// Start server
+				logger().info("Starting server...");
+				ServerManager.start();
+				
+				Events.fire(Type.SERVER_START);
 				
 				// Startup complete
 				logger().info("Startup complete.");

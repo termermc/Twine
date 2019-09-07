@@ -43,17 +43,22 @@ public class ServerManager {
 	
 	private static HttpServerOptions _httpOps = null;
 	
+	private static TwineWebsocket _ws = null;
+	
 	/**
-	 * Starts the server
+	 * Initializes the server without starting it or registering handlers
 	 * @since 1.0-alpha
 	 */
-	protected static void start() {
+	protected static void init() {
 		// Setup server
 		_vertx = Vertx.factory.vertx(new VertxOptions());
 		_router = Router.router(_vertx);
 		_httpOps = new HttpServerOptions()
 			.setLogActivity((Boolean) Twine.config().get("httpLogging"))
 			.setCompressionSupported((Boolean) Twine.config().get("compression"));
+		
+		// Instantiate websocket utility
+		_ws = new TwineWebsocket(_vertx, (Integer) Twine.config().get("wsMaxBytesStreaming"));
 		
 		// SSL
 		if(((String) Twine.config().get("keystore")).length() > 0) {
@@ -78,89 +83,14 @@ public class ServerManager {
 		}
 		
 		// Logger
-		_router.route().handler(r -> {
-			// Check if logging is enabled
-			if((Boolean) Twine.config().get("httpLogging")) {
-				// Write access log asynchronously
-				_vertx.executeBlocking(future -> {
-					String str = new Date().toString()+
-								 " "+r.request().method().name()+
-								 " "+r.request().uri()+
-								 " ("+r.request().remoteAddress().host()+
-								 " "+r.request().headers().get("User-Agent")+
-								 ")";
-					System.out.println(str);
-					try {
-						Writer.append("access.log", str+'\n');
-						future.complete();
-					} catch (IOException e) {
-						Twine.logger().error("Failed to write access log");
-						e.printStackTrace();
-						future.fail("Error writing to log file");
-					}
-				}, res -> {
-					// Completed
-				});
-			}
-			r.next();
-		});
+		_router.route().handler(new LoggingHandler());
 		
 		// Upload limit
 		_bodyHandler = BodyHandler.create();
 		_bodyHandler
 			.setBodyLimit((Integer) Twine.config().get("maxBodySize"));
+		// Limit body size before anything is done
 		_router.route().handler(_bodyHandler);
-		
-		// Domain files
-		_router.route().handler(r -> {
-			try {
-				// Check which domain the request is coming from
-				String domain = RequestUtils.domain(r.request().host());
-				
-				// Check if there's an entry for this domain
-				Domain dom = null;
-				if(Twine.domains().exists(domain)) {
-					dom = Twine.domains().byDomain(domain);
-				} else {
-					dom = Twine.domains().defaultDomain();
-				}
-				
-				// Get file associated with the request path
-				File f = new File(
-					RequestUtils.pathToFile(
-						r.request().path(), dom
-					)
-				);
-				
-				// Write response or pass it to another handler
-				if(f.exists()) {
-					try {
-						// Handle processing HTML documents
-						if(f.getName().endsWith(".html")) {
-							String processed = Documents.process(f, dom, r, new HashMap<String, Object>());
-							if(!r.response().ended()) {
-								if(r.response().headers().get("Content-Type") == null) {
-									r.response().putHeader("Content-Type", "text/html");
-								}
-								r.response().end(processed);
-							}
-						} else {
-							// Send file with ranges enabled
-							sendFile(r, f);
-						}
-					} catch (IOException e) {
-						r.response().sendFile(dom.directory()+dom.serverError()).end();
-						e.printStackTrace();
-					}
-				} else {
-					r.next();
-				}
-			} catch(Exception e) {
-				Twine.logger().error("Unknown error occurred");
-				e.printStackTrace();
-				r.response().end("Unknown error occurred");
-			}
-		});
 		
 		// Static handler
 		_staticHandler = StaticHandler.create((String) Twine.config().get("static"));
@@ -170,64 +100,24 @@ public class ServerManager {
 			.setCachingEnabled((Boolean) Twine.config().get("staticCaching"))
 			.setDirectoryListing((Boolean) Twine.config().get("staticBrowser"))
 			.setEnableRangeSupport(true);
+	}
+	
+	/**
+	 * Starts the server
+	 * @since 1.0-alpha
+	 */
+	protected static void start() {
+		// Setup websocket
+		if((Boolean) Twine.config().get("wsEnable"))
+			_router.route(((String) Twine.config().get("wsEndpoint"))+'*').handler(_ws.build());
+		
+		// Domain and static handlers
+		_router.route().handler(new DomainHandler());
 		_router.route().handler(_staticHandler);
 		
 		// Error handlers
-		_router.errorHandler(404, r -> {
-			String domain = RequestUtils.domain(r.request().host());
-			Domain dom = null;
-			
-			// Select domain
-			if(Twine.domains().exists(domain)) {
-				dom = Twine.domains().byDomain(domain);
-			} else {
-				dom = Twine.domains().defaultDomain();
-			}
-			
-			try {
-				// Only send 404 if not disabled in config
-				if(dom.ignore404()) {
-					r.response().setStatusCode(200);
-				} else {
-					r.response().setStatusCode(404);
-				}
-				// Process document only if it's HTML
-				if(dom.notFound().endsWith(".html")) {
-					String processed = Documents.process(new File(dom.directory()+dom.notFound()), dom, r, new HashMap<String, Object>());
-					if(!r.response().ended()) {
-						if(r.response().headers().get("Content-Type") == null) {
-							r.response().putHeader("Content-Type", "text/html");
-						}
-						r.response().end(processed);
-					}
-				} else {
-					// Send a file with ranges enabled
-					sendFile(r, new File(dom.directory()+dom.notFound()));
-				}
-			} catch (IOException e) {
-				// Report error and send 500 page
-				Twine.logger().error("Failed to process 404/not found document");
-				e.printStackTrace();
-				r.response().sendFile(dom.directory()+dom.serverError());
-			}
-		});
-		_router.errorHandler(500, r -> {
-			String domain = RequestUtils.domain(r.request().host());
-			Domain dom = null;
-			
-			Twine.logger().error("Internal server error:");
-			r.failure().printStackTrace();
-			
-			// Select domain
-			if(Twine.domains().exists(domain)) {
-				dom = Twine.domains().byDomain(domain);
-			} else {
-				dom = Twine.domains().defaultDomain();
-			}
-			
-			// Send 500 error document
-			r.response().sendFile(dom.directory()+dom.serverError());
-		});
+		_router.errorHandler(404, new NotFoundHandler());
+		_router.errorHandler(500, new ErrorHandler());
 		
 		// Start server
 		String addr = (String) Twine.config().get("ip");
@@ -305,6 +195,14 @@ public class ServerManager {
 	 */
 	public static Vertx vertx() {
 		return _vertx;
+	}
+	/**
+	 * Returns the TwineWebsocket to setup SockJS event bus bridge settings
+	 * @return the TwineWebsocket for this server
+	 * @since 1.0-alpha
+	 */
+	public static TwineWebsocket ws() {
+		return _ws;
 	}
 	/**
 	 * Returns the BodyHandler for this instance
@@ -387,5 +285,174 @@ public class ServerManager {
 	 */
 	public static void post(String route, String domain, Handler<RoutingContext> hdlr) {
 		_router.post(route).handler(VirtualHostHandler.create(domain, hdlr));
+	}
+	
+	/**
+	 * Handler class to deal with logging
+	 * @author termer
+	 * @since 1.0-alpha
+	 */
+	private static class LoggingHandler implements Handler<RoutingContext> {
+		public void handle(RoutingContext r) {
+			// Check if logging is enabled
+			if((Boolean) Twine.config().get("httpLogging")) {
+				// Write access log asynchronously
+				_vertx.executeBlocking(future -> {
+					String str = new Date().toString()+
+								 " "+r.request().method().name()+
+								 " "+r.request().uri()+
+								 " ("+r.request().remoteAddress().host()+
+								 " "+r.request().headers().get("User-Agent")+
+								 ")";
+					System.out.println(str);
+					try {
+						Writer.append("access.log", str+'\n');
+						future.complete();
+					} catch (IOException e) {
+						Twine.logger().error("Failed to write access log");
+						e.printStackTrace();
+						future.fail("Error writing to log file");
+					}
+				}, res -> {
+					// Completed
+				});
+			}
+			r.next();
+		}
+	}
+	
+	/**
+	 * Handler class to deal with domain requests
+	 * @author termer
+	 * @since 1.0-alpha
+	 */
+	private static class DomainHandler implements Handler<RoutingContext> {
+		public void handle(RoutingContext r) {
+			try {
+				// Check which domain the request is coming from
+				String domain = RequestUtils.domain(r.request().host());
+				
+				// Check if there's an entry for this domain
+				Domain dom = null;
+				if(Twine.domains().exists(domain)) {
+					dom = Twine.domains().byDomain(domain);
+				} else {
+					dom = Twine.domains().defaultDomain();
+				}
+				
+				// Get file associated with the request path
+				File f = new File(
+					RequestUtils.pathToFile(
+						r.request().path(), dom
+					)
+				);
+				
+				// Write response or pass it to another handler
+				if(f.exists()) {
+					try {
+						// Handle processing HTML documents
+						if(f.getName().endsWith(".html")) {
+							String processed = Documents.process(f, dom, r, new HashMap<String, Object>());
+							if(!r.response().ended()) {
+								if(r.response().headers().get("Content-Type") == null) {
+									r.response().putHeader("Content-Type", "text/html");
+								}
+								r.response().end(processed);
+							}
+						} else {
+							// Send file with ranges enabled
+							sendFile(r, f);
+						}
+					} catch (IOException e) {
+						r.response().sendFile(dom.directory()+dom.serverError()).end();
+						e.printStackTrace();
+					}
+				} else {
+					r.next();
+				}
+			} catch(Exception e) {
+				Twine.logger().error("Unknown error occurred");
+				e.printStackTrace();
+				r.response().end("Unknown error occurred");
+			}
+		}
+	}
+	
+	/**
+	 * Handler class to deal with 404 errors
+	 * @author termer
+	 * @since 1.0-alpha
+	 */
+	private static class NotFoundHandler implements Handler<RoutingContext> {
+		public void handle(RoutingContext r) {
+			String domain = RequestUtils.domain(r.request().host());
+			Domain dom = null;
+			
+			// Select domain
+			if(Twine.domains().exists(domain)) {
+				dom = Twine.domains().byDomain(domain);
+			} else {
+				dom = Twine.domains().defaultDomain();
+			}
+			
+			try {
+				// Only send 404 if not disabled in config
+				if(dom.ignore404()) {
+					r.response().setStatusCode(200);
+				} else {
+					r.response().setStatusCode(404);
+				}
+				// Process document only if it's HTML
+				if(dom.notFound().endsWith(".html")) {
+					String processed = Documents.process(new File(dom.directory()+dom.notFound()), dom, r, new HashMap<String, Object>());
+					if(!r.response().ended()) {
+						if(r.response().headers().get("Content-Type") == null) {
+							r.response().putHeader("Content-Type", "text/html");
+						}
+						r.response().end(processed);
+					}
+				} else {
+					// Send a file with ranges enabled
+					sendFile(r, new File(dom.directory()+dom.notFound()));
+				}
+			} catch (IOException e) {
+				// Report error and send 500 page
+				Twine.logger().error("Failed to process 404/not found document");
+				e.printStackTrace();
+				r.response().sendFile(dom.directory()+dom.serverError());
+			}
+		}
+	}
+	
+	/**
+	 * Handler class to deal with server errors
+	 * @author termer
+	 * @since 1.0-alpha
+	 */
+	private static class ErrorHandler implements Handler<RoutingContext> {
+		public void handle(RoutingContext r) {
+			String domain = RequestUtils.domain(r.request().host());
+			Domain dom = null;
+			
+			Twine.logger().error("Internal server error:");
+			r.failure().printStackTrace();
+			
+			// Select domain
+			if(Twine.domains().exists(domain)) {
+				dom = Twine.domains().byDomain(domain);
+			} else {
+				dom = Twine.domains().defaultDomain();
+			}
+			
+			try {
+				// Send 500 error document
+				r.response().sendFile(dom.directory()+dom.serverError());
+			} catch(Exception e) {
+				// Send generic message if sending file fails
+				Twine.logger().error("Failed to send 500 document:");
+				e.printStackTrace();
+				r.response().end("Internal error");
+			}
+		}
 	}
 }

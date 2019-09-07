@@ -50,3 +50,15 @@ ignoreModuleCheck: false
 
 # Enable Vert.x sessions
 sessions: true
+
+# Whether to enable SockJS eventbus communication
+# Keep in mind that by default, no eventbus channels are exposed.
+# A module must use ServerManager.ws().outbound(<channel>)|inbount(<channel>) to manage exposed channels.
+wsEnable: false
+
+# The endpoint for SockJS clients to connect 
+wsEndpoint: "/eventbus/"
+
+# Sets a minimum number of bytes that can be send over a single http streaming request before it will be closed
+# Default is 128k
+wsMaxBytesStreaming: 131072
