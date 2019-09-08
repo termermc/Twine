@@ -54,9 +54,12 @@ public class Events {
 	 * @since 1.0-alpha
 	 */
 	protected static boolean fire(Type type) {
-		// Avoid NullPointException
+		// Avoid NullPointerException
 		if(!_events.containsKey(type)) _events.put(type, new ArrayList<TwineEvent>());
 		if(!_async.containsKey(type)) _async.put(type, new ArrayList<TwineEvent>());
+		
+		// Publish event to event bus
+		ServerManager.vertx().eventBus().publish("twine.events", type.name());
 		
 		// Fire async events
 		for(TwineEvent evt : _async.get(type)) {
