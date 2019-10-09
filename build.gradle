@@ -33,6 +33,7 @@ dependencies {
 	compile 'io.vertx:vertx-web:3.7.1'
 	compile 'io.vertx:vertx-sql-common:3.7.1'
 	compile 'io.vertx:vertx-jdbc-client:3.7.1'
+	compile group: 'io.vertx', name: 'vertx-hazelcast', version: '3.8.2'
 	
 	// Misc. dependencies
 	compile group: 'com.mashape.unirest', name: 'unirest-java', version: '1.4.9'
