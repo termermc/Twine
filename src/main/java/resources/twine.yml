@@ -62,3 +62,6 @@ wsEndpoint: "/eventbus/"
 # Sets a minimum number of bytes that can be send over a single http streaming request before it will be closed
 # Default is 128k
 wsMaxBytesStreaming: 131072
+
+# Whether to enable Vert.x clustering (futher configuration must be done in the cluster.yml file)
+clusterEnable: false

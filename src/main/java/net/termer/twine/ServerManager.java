@@ -5,12 +5,16 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.eventbus.EventBusOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.impl.MimeMapping;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CookieHandler;
@@ -21,6 +25,7 @@ import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.VirtualHostHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
+import io.vertx.spi.cluster.zookeeper.ZookeeperClusterManager;
 import net.termer.twine.utils.Domains.Domain;
 import net.termer.twine.documents.Documents;
 import net.termer.twine.utils.RequestUtils;
@@ -49,9 +54,54 @@ public class ServerManager {
 	 * Initializes the server without starting it or registering handlers
 	 * @since 1.0-alpha
 	 */
-	protected static void init() {
+	protected static void init(Handler<AsyncResult<Vertx>> callback) {
+		// Check if clustering is enabled
+		if((boolean) Twine.config().get("clusterEnable")) {
+			// Configure cluster
+			JsonObject zkConf = new JsonObject()
+				.put("zookeeperHosts", (String) Twine.clusterConfig().get("clusterHosts"))
+				.put("sessionTimeout", (Integer) Twine.clusterConfig().get("sessionTimeout"))
+				.put("connectTimeout", (Integer) Twine.clusterConfig().get("connectTimeout"))
+				.put("rootPath", (String) Twine.clusterConfig().get("rootPath"))
+				.put("retry", new JsonObject()
+					.put("initialSleepTime", (Integer) Twine.clusterConfig().get("retryInitialSleepTime"))
+					.put("intervalTimes", (Integer) Twine.clusterConfig().get("retryIntervalTime"))
+					.put("maxTimes", (Integer) Twine.clusterConfig().get("retryMaxTimes")
+				)
+			);
+			
+			ZookeeperClusterManager clusterMan = new ZookeeperClusterManager(zkConf);
+			
+			// Create clustered Vert.x instance
+			EventBusOptions ebOps = new EventBusOptions()
+				.setClustered(true);
+			VertxOptions vertxOps = new VertxOptions()
+				.setClusterManager(clusterMan)
+				.setEventBusOptions(ebOps);
+			Vertx.clusteredVertx(vertxOps, vertx -> {
+				if(vertx.succeeded()) {
+					_vertx = vertx.result();
+					
+					// Run the rest of the initialization process
+					_init();
+					// Complete callback
+					callback.handle(vertx);
+				} else {
+					// Error occurred
+					callback.handle(Future.failedFuture(vertx.cause()));
+				}
+			});
+		} else {
+			// Create normal Vert.x instance
+			_vertx = Vertx.vertx();
+			_init();
+			callback.handle(Future.succeededFuture(_vertx));
+		}
+	}
+	
+	// Completes the actions of init()
+	private static void _init() {
 		// Setup server
-		_vertx = Vertx.factory.vertx(new VertxOptions());
 		_router = Router.router(_vertx);
 		_httpOps = new HttpServerOptions()
 			.setLogActivity((Boolean) Twine.config().get("httpLogging"))

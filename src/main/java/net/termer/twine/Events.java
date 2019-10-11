@@ -3,6 +3,7 @@ package net.termer.twine;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import io.vertx.core.json.JsonObject;
 import net.termer.twine.utils.TwineEvent;
 
 /**
@@ -50,7 +51,7 @@ public class Events {
 	/**
 	 * Fires all callbacks (sync and async) for the specified event type
 	 * @param type the event type
-	 * @return whether the event was marked as cancelled by a callback
+	 * @return whether the event is able to run (e.g. it wasn't cancelled by a callback)
 	 * @since 1.0-alpha
 	 */
 	protected static boolean fire(Type type) {
@@ -59,7 +60,12 @@ public class Events {
 		if(!_async.containsKey(type)) _async.put(type, new ArrayList<TwineEvent>());
 		
 		// Publish event to event bus
-		ServerManager.vertx().eventBus().publish("twine.events", type.name());
+		ServerManager.vertx().eventBus().publish(
+			"twine.events",
+			new JsonObject()
+				.put("event", type.toString())
+				.put("instance", Twine.INSTANCE_ID)
+		);
 		
 		// Fire async events
 		for(TwineEvent evt : _async.get(type)) {
@@ -77,6 +83,6 @@ public class Events {
 			evt.callback(options);
 		}
 		
-		return options.cancelled();
+		return !options.cancelled();
 	}
 }

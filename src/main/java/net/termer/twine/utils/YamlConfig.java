@@ -14,7 +14,7 @@ import org.yaml.snakeyaml.Yaml;
  * @author termer
  * @since 1.0-alpha
  */
-public class Config {
+public class YamlConfig {
 	private String _path;
 	private Map<String, Object> _map = null;
 	private Yaml _yml;
@@ -24,7 +24,7 @@ public class Config {
 	 * @param path the path to the config file
 	 * @since 1.0-alpha
 	 */
-	public Config(String path) {
+	public YamlConfig(String path) {
 		_path = path;
 		_yml = new Yaml();
 	}
@@ -87,12 +87,12 @@ public class Config {
 	 * @throws IOException if writing to the file fails
 	 * @since 1.0-alpha
 	 */
-	public static Config create(String path, LinkedHashMap<String, Object> values) throws IOException {
+	public static YamlConfig create(String path, LinkedHashMap<String, Object> values) throws IOException {
 		Yaml yml = new Yaml();
 		FileWriter writer = new FileWriter(path);
 		yml.dump(values, writer);
 		
-		return new Config(path);
+		return new YamlConfig(path);
 	}
 	/**
 	 * Creates a new Config file with the provided values, or reads it if it already exists.
@@ -103,12 +103,12 @@ public class Config {
 	 * @throws IOException if reading or writing the file fails
 	 * @since 1.0-alpha
 	 */
-	public static Config createIfNotPresent(String path, LinkedHashMap<String, Object> values) throws IOException {
+	public static YamlConfig createIfNotPresent(String path, LinkedHashMap<String, Object> values) throws IOException {
 		File f = new File(path);
-		Config cfg = null;
+		YamlConfig cfg = null;
 		
 		if(f.exists() && f.isFile()) {
-			cfg = new Config(path);
+			cfg = new YamlConfig(path);
 			
 			// Check values against file
 			boolean rewrite = false;

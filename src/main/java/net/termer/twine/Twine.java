@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,7 @@ import org.yaml.snakeyaml.Yaml;
 import net.termer.twine.Events.Type;
 import net.termer.twine.modules.ModuleManager;
 import net.termer.twine.utils.ArgParser;
-import net.termer.twine.utils.Config;
+import net.termer.twine.utils.YamlConfig;
 import net.termer.twine.utils.Domains;
 import net.termer.twine.utils.FileChecker;
 
@@ -22,10 +23,18 @@ import net.termer.twine.utils.FileChecker;
  * @since 1.0-alpha
  */
 public class Twine {
+	/**
+	 * The unique ID of this Twine instance.
+	 * This ID will be sent along with all Twine server events when publishing to the event bus.
+	 */
+	public static final float INSTANCE_ID = new Random().nextInt();
+	
+	// Instance variables
 	private static ArgParser _args;
 	private static String _verStr = "1.0-alpha";
 	private static Logger _logger = LoggerFactory.getLogger(Twine.class);
-	private static Config _conf = null;
+	private static YamlConfig _conf = null;
+	private static YamlConfig _clusterConf = null;
 	private static Domains _domains = null;
 	private static boolean _firstConf = true;
 	
@@ -64,6 +73,7 @@ public class Twine {
 			}
 			FileChecker.createIfNotPresent(new String[] {
 				"twine.yml",
+				"cluster.yml",
 				"domains.yml",
 				"access.log",
 				"domains/default/index.html",
@@ -77,28 +87,41 @@ public class Twine {
 			});
 			
 			logger().info("Loading configs...");
-			_conf = new Config("twine.yml");
+			_conf = new YamlConfig("twine.yml");
+			_clusterConf = new YamlConfig("cluster.yml");
 			try {
-				// Load all configurations (reload is just load when it's first called)
+				// Load all configurations (reloadConfigurations() is just load when it's first called)
 				reloadConfigurations();
 				
 				// Initialize server so components will be available for modules
-				ServerManager.init();
-				
-				// Load modules
-				if(!_args.flag('m') && !_args.option("skip-modules")) {
-					logger().info("Loading modules...");
-					ModuleManager.loadModules();
-				}
-				
-				// Start server
-				logger().info("Starting server...");
-				ServerManager.start();
-				
-				Events.fire(Type.SERVER_START);
-				
-				// Startup complete
-				logger().info("Startup complete.");
+				ServerManager.init(r -> {
+					if(r.succeeded()) {
+						// Catch any further initialization errors
+						try {
+							// Load modules
+							if(!_args.flag('m') && !_args.option("skip-modules")) {
+								logger().info("Loading modules...");
+								ModuleManager.loadModules();
+							}
+							
+							// Start server
+							logger().info("Starting server...");
+							ServerManager.start();
+							
+							Events.fire(Type.SERVER_START);
+							
+							// Startup complete
+							logger().info("Startup complete.");
+							
+						} catch (IOException e) {
+							logger().error("Failed to start server");
+							e.printStackTrace();
+						}
+					} else {
+						logger().error("Failed to start server");
+						r.cause().printStackTrace();
+					}
+				});
 			} catch (IOException e) {
 				logger().error("Failed to start server");
 				e.printStackTrace();
@@ -115,8 +138,13 @@ public class Twine {
 	 */
 	@SuppressWarnings("unchecked")
 	public static void reloadConfigurations() throws IOException {
-		if(!Events.fire(Type.CONFIG_RELOAD)) {
+		boolean proceed = true;
+		if(ServerManager.vertx() != null)
+			proceed = Events.fire(Type.CONFIG_RELOAD);
+		
+		if(proceed) {
 			_conf.load();
+			_clusterConf.load();
 			// Modify config based on CLI options
 			if(_args.option("config")) {
 				String op = _args.optionString("config");
@@ -200,8 +228,16 @@ public class Twine {
 	 * @return the server configuration file
 	 * @since 1.0-alpha
 	 */
-	public static Config config() {
+	public static YamlConfig config() {
 		return _conf;
+	}
+	/**
+	 * Returns the contents of cluster.yml
+	 * @return The server cluster configuration file
+	 * @since 1.0-alpha
+	 */
+	public static YamlConfig clusterConfig() {
+		return _clusterConf;
 	}
 	/**
 	 * Returns the server's configured domains
