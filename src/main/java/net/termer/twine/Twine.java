@@ -27,7 +27,7 @@ public class Twine {
 	 * The unique ID of this Twine instance.
 	 * This ID will be sent along with all Twine server events when publishing to the event bus.
 	 */
-	public static final float INSTANCE_ID = new Random().nextInt();
+	public static final float INSTANCE_ID = new Random().nextInt(10000);
 	
 	// Instance variables
 	private static ArgParser _args;
