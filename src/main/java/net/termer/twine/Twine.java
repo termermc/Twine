@@ -182,7 +182,7 @@ public class Twine {
 		}
 	}
 	public static void shutdown() {
-		if(!Events.fire(Type.SERVER_STOP)) {
+		if(Events.fire(Type.SERVER_STOP)) {
 			logger().info("Shutting down down Twine...");
 			logger().info("Shutting down modules...");
 			ModuleManager.shutdownModules();
