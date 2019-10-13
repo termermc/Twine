@@ -27,6 +27,16 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
+configurations.all {
+  resolutionStrategy {
+    failOnVersionConflict()
+    preferProjectModules()
+	
+    force 'org.json:json:20190722'
+  }
+}
+
+
 dependencies {
 	// Vertx dependencies
 	compile 'io.vertx:vertx-core:3.8.2'
@@ -40,6 +50,7 @@ dependencies {
 	compile group: 'net.lingala.zip4j', name: 'zip4j', version: '2.0.3'
 	compile group: 'org.yaml', name: 'snakeyaml', version: '1.24'
 	compile group: 'org.beanshell', name: 'bsh', version: '2.0b5'
+	compile group: 'org.json', name: 'json', version: '20190722'
 	
 	// SLF4J dependencies
 	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.26'
