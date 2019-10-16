@@ -7,7 +7,17 @@
  */
 
 // Apply the java-library plugin to add support for Java Library
-apply plugin: 'java-library'
+plugins {
+  id 'com.github.johnrengelman.shadow' version '5.1.0'
+  id 'java'
+  id 'java-library'
+}
+
+jar {
+   manifest {
+       attributes 'Main-Class': 'net.termer.twine.Twine'
+   }
+}
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -36,7 +46,6 @@ configurations.all {
   }
 }
 
-
 dependencies {
 	// Vertx dependencies
 	compile 'io.vertx:vertx-core:3.8.2'
@@ -60,14 +69,4 @@ dependencies {
 	compile group: 'org.postgresql', name: 'postgresql', version: '42.2.6'
 	compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.16'
 	compile group: 'com.zaxxer', name: 'HikariCP', version: '3.3.1'
-}
-
-jar {
-	manifest {
-		attributes "Main-Class": "net.termer.twine.Twine"
-	}
-	
-	from {
-		configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-	}
 }
