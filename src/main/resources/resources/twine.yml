@@ -42,7 +42,7 @@ maxBodySize: 10240
 # Whether to send caching headers for static content
 staticCaching: true
 
-# Whethet the server should provide a file browser for static resources
+# Whether the server should provide a file browser for static resources
 staticBrowser: false
 
 # Whether to load modules even if they specify an incompatible Twine version
