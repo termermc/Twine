@@ -62,7 +62,7 @@ public class ServerManager {
 				.put("zookeeperHosts", (String) Twine.clusterConfig().get("clusterHosts"))
 				.put("sessionTimeout", (Integer) Twine.clusterConfig().get("sessionTimeout"))
 				.put("connectTimeout", (Integer) Twine.clusterConfig().get("connectTimeout"))
-				.put("rootPath", (String) Twine.clusterConfig().get("rootPath"))
+				.put("rootPath", "io.vertx")
 				.put("retry", new JsonObject()
 					.put("initialSleepTime", (Integer) Twine.clusterConfig().get("retryInitialSleepTime"))
 					.put("intervalTimes", (Integer) Twine.clusterConfig().get("retryIntervalTime"))
