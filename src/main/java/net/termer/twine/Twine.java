@@ -39,6 +39,9 @@ public class Twine {
 	private static boolean _firstConf = true;
 	
 	public static void main(String[] args) {
+		// Start main thread name
+		Thread.currentThread().setName("Twine");
+		
 		// Read arguments
 		_args = new ArgParser(args);
 		
@@ -101,27 +104,32 @@ public class Twine {
 				// Initialize server so components will be available for modules
 				ServerManager.init(r -> {
 					if(r.succeeded()) {
-						// Catch any further initialization errors
-						try {
-							// Load modules
-							if(!_args.flag('m') && !_args.option("skip-modules")) {
-								logger().info("Loading modules...");
-								ModuleManager.loadModules();
+						// Execute in worker thread
+						Thread worker = new Thread(() -> {
+							// Catch any further initialization errors
+							try {
+								// Load modules
+								if(!_args.flag('m') && !_args.option("skip-modules")) {
+									logger().info("Loading modules...");
+									ModuleManager.loadModules();
+								}
+								
+								// Start server
+								logger().info("Starting server...");
+								ServerManager.start();
+								
+								Events.fire(Type.SERVER_START);
+								
+								// Startup complete
+								logger().info("Startup complete.");
+								
+							} catch (IOException e) {
+								logger().error("Failed to start server");
+								e.printStackTrace();
 							}
-							
-							// Start server
-							logger().info("Starting server...");
-							ServerManager.start();
-							
-							Events.fire(Type.SERVER_START);
-							
-							// Startup complete
-							logger().info("Startup complete.");
-							
-						} catch (IOException e) {
-							logger().error("Failed to start server");
-							e.printStackTrace();
-						}
+						});
+						worker.setName("Twine");
+						worker.start();
 					} else {
 						logger().error("Failed to start server");
 						r.cause().printStackTrace();
