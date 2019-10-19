@@ -87,6 +87,19 @@ public class FileChecker {
 		}
 	}
 	/**
+	 * Creates the specified file paths if they do not exist.
+	 * Will only check the array of paths if the first path does not exist.
+	 * Paths ending with "/" are recognized as directories, otherwise they are treated as normal files.
+	 * @param requiredPath the path required to not exist for the rest of the paths to be check
+	 * @param paths the file paths
+	 * @since 1.0-alpha
+	 */
+	public static void createIfNotPresent(String requiredPath, String[] paths) {
+		// Only create if required path is not present
+		if(!new File(requiredPath).exists())
+			createIfNotPresent(paths);
+	}
+	/**
 	 * Deletes the specified file paths.
 	 * Paths ending with "/" are recognized as directories, otherwise they are treated as normal files.
 	 * @param paths the file paths
@@ -94,7 +107,7 @@ public class FileChecker {
 	 */
 	public static void delete(String[] paths) {
 		for(String path : paths) {
-			if(path.startsWith("./")) path.substring(2);
+			if(path.startsWith("./")) path = path.substring(2);
 			if(path.endsWith("/")) {
 				File dir = new File(path);
 				for(File f : dir.listFiles()) {
