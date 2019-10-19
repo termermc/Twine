@@ -135,7 +135,8 @@ public class ModuleManager {
 	}
 	
 	/**
-	 * Executes the shutdown methods for all loaded modules
+	 * Executes the shutdown methods for all loaded modules.
+	 * Blocks the thread until all the modules' `shutdown` methods are executed.
 	 * @since 1.0-alpha
 	 */
 	public static void shutdownModules() {
@@ -150,6 +151,7 @@ public class ModuleManager {
 		}
 	}
 	
+	// Shuts down a module
 	private static void sdMod(TwineModule m) {
 		try {
 			m.shutdown();
