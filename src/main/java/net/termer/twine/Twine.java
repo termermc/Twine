@@ -68,18 +68,23 @@ public class Twine {
 				FileChecker.delete(new String[] {
 					"twine.yml",
 					"domains.yml",
+					"cluster.yml",
 					"configs/"
 				});
 			}
+			
+			// Create default files
+			FileChecker.createIfNotPresent("twine.yml", new String[] {
+				"domains/default/index.html",
+				"domains/default/404.html",
+				"domains/default/500.html",
+				"domains/default/logo.png",	
+			});
 			FileChecker.createIfNotPresent(new String[] {
 				"twine.yml",
 				"cluster.yml",
 				"domains.yml",
 				"access.log",
-				"domains/default/index.html",
-				"domains/default/404.html",
-				"domains/default/500.html",
-				"domains/default/logo.png",
 				"configs/",
 				"static/",
 				"modules/",
