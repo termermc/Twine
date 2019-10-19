@@ -31,7 +31,7 @@ public class Twine {
 	
 	// Instance variables
 	private static ArgParser _args;
-	private static String _verStr = "1.0-alpha";
+	private static String _verStr = "1.1-alpha";
 	private static Logger _logger = LoggerFactory.getLogger(Twine.class);
 	private static YamlConfig _conf = null;
 	private static YamlConfig _clusterConf = null;
