@@ -6,3 +6,7 @@ build
 
 # Ignore bin directory
 bin/
+
+# Javadoc files
+doc/
+mkdoc.sh
