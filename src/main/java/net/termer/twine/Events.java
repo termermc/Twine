@@ -18,8 +18,20 @@ public class Events {
 	 * @since 1.0-alpha
 	 */
 	public static enum Type {
+		/**
+		 * Event fired when the server's configuration files are being reloaded
+		 * @since 1.0-alpha
+		 */
 		CONFIG_RELOAD,
+		/**
+		 * Event fired when the server is starting
+		 * @since 1.0-alpha
+		 */
 		SERVER_START,
+		/**
+		 * Event fired when the server is shutting down
+		 * @since 1.0-alpha
+		 */
 		SERVER_STOP
 	}
 	
