@@ -92,7 +92,7 @@ public class FileChecker {
 	 * Paths ending with "/" are recognized as directories, otherwise they are treated as normal files.
 	 * @param requiredPath the path required to not exist for the rest of the paths to be check
 	 * @param paths the file paths
-	 * @since 1.0-alpha
+	 * @since 1.1-alpha
 	 */
 	public static void createIfNotPresent(String requiredPath, String[] paths) {
 		// Only create if required path is not present
