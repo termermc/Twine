@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -393,7 +395,7 @@ public class ServerManager {
 				// Get file associated with the request path
 				File f = new File(
 					RequestUtils.pathToFile(
-						r.request().path(), dom
+						URLDecoder.decode(r.request().path(), StandardCharsets.UTF_8.toString()), dom
 					)
 				);
 				
