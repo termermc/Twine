@@ -1,8 +1,8 @@
 # Module Development
-Twine's main feature is the ability to deploy modules on an instance. Modules are packages written in Java (or any other JVM language) that have the ability to use Twine and Vert.x's functionality. To create a new module, you'll need to create a new Java project and include the Twine jar in the classpath. Once you've included it, create a new class called `Module` that implements the interface [TwineModule](https://termer.net/javadoc/twine/1.0-alpha/net/termer/twine/modules/TwineModule.html).
+Twine's main feature is the ability to deploy modules on an instance. Modules are packages written in Java (or any other JVM language) that have the ability to use Twine and Vert.x's functionality. To create a new module, you'll need to create a new Java project and include the Twine jar in the classpath. Once you've included it, create a new class called `Module` that implements the interface [TwineModule](https://termer.net/javadoc/twine/1.1-alpha/net/termer/twine/modules/TwineModule.html).
 
 ## Javadoc
-The Twine Javadoc for module development is located [here](https://termer.net/javadoc/twine/1.0-alpha/).
+The Twine Javadoc for module development is located [here](https://termer.net/javadoc/twine/1.1-alpha/).
 
 ## TwineModule Interface
 The methods that are defined in `TwineModule` are as follows:
