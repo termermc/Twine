@@ -18,12 +18,13 @@ The methods that are defined in `TwineModule` are as follows:
 `shutdown` - The method that is called when the module is being shutdown.
 
 ## Example Module
+For a fairly comprehensive example module, you can check out [ExampleTwineModule](https://github.com/termermc/ExampleTwineModule) on GitHub
+
 Here's an example of a Twine module that creates the route `/hello/:name` on the default domain that returns `Hello <name>`.
 
 ```java
 public class Module implements TwineModule {
 
-	@Override
 	public void initialize() {
 		// Get default domain
 		Domain defaultDomain = Twine.domains().byName("default");
@@ -38,22 +39,18 @@ public class Module implements TwineModule {
 		});
 	}
 
-	@Override
 	public String name() {
 		return "Example Module";
 	}
 
-	@Override
 	public Priority priority() {
 		return Priority.LOW;
 	}
 
-	@Override
 	public void shutdown() {
 		Twine.logger().info("Example Module is shutting down!");
 	}
 
-	@Override
 	public String twineVersion() {
 		return "1.0-alpha+";
 	}
