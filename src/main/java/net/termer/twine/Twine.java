@@ -31,7 +31,8 @@ public class Twine {
 	
 	// Instance variables
 	private static ArgParser _args;
-	private static String _verStr = "1.1-alpha";
+	private static String _verStr = "1.2-alpha";
+	private static int _verInt = 2;
 	private static Logger _logger = LoggerFactory.getLogger(Twine.class);
 	private static YamlConfig _conf = null;
 	private static YamlConfig _clusterConf = null;
@@ -227,6 +228,15 @@ public class Twine {
 	 */
 	public static String version() {
 		return _verStr;
+	}
+	/**
+	 * Returns the version integer of this release.
+	 * The version integer will increment at every release, regardless of its type.
+	 * @return This release's version integer
+	 * @since 1.2-alpha
+	 */
+	public static int versionInt() {
+		return _verInt;
 	}
 	/**
 	 * Returns the Twine Logger object
