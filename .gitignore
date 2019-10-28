@@ -4,8 +4,10 @@
 # Ignore Gradle build output directory
 build
 
-# Ignore bin directory
+# Ignore some eclipse files
 bin/
+.settings/
+.classpath
 
 # Javadoc files
 doc/
