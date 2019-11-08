@@ -2,6 +2,7 @@ package net.termer.twine;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
@@ -64,81 +65,114 @@ public class Twine {
 		} else if(_args.option("version") || _args.flag('v')) {
 			System.out.println("Twine version "+_verStr);
 		} else if(_args.option("start") || _args.flag('s')) {
-			// Check files and directories
-			logger().info("Initializing files...");
-			
-			// Delete configs if --recreate-configs is enabled
-			if(_args.flag('r') || _args.option("recreate-configs")) {
-				FileChecker.delete(new String[] {
-					"twine.yml",
-					"domains.yml",
-					"cluster.yml",
-					"configs/"
-				});
-			}
-			
-			// Create default files
-			FileChecker.createIfNotPresent("twine.yml", new String[] {
-				"domains/default/index.html",
-				"domains/default/404.html",
-				"domains/default/500.html",
-				"domains/default/logo.png",	
-			});
-			FileChecker.createIfNotPresent(new String[] {
-				"twine.yml",
-				"cluster.yml",
-				"domains.yml",
-				"access.log",
-				"configs/",
-				"static/",
-				"modules/",
-				"dependencies/"
-			});
-			
-			logger().info("Loading configs...");
-			_conf = new YamlConfig("twine.yml");
-			_clusterConf = new YamlConfig("cluster.yml");
-			try {
-				// Load all configurations (reloadConfigurations() is just load when it's first called)
-				reloadConfigurations();
+			// Check if restart need for proper classpath
+			if(_args.option("classpath-loaded")) {
+				// Check files and directories
+				logger().info("Initializing files...");
 				
-				// Initialize server so components will be available for modules
-				ServerManager.init(r -> {
-					if(r.succeeded()) {
-						// Execute in worker thread
-						Thread worker = new Thread(() -> {
-							// Catch any further initialization errors
-							try {
-								// Load modules
-								if(!_args.flag('m') && !_args.option("skip-modules")) {
-									logger().info("Loading modules...");
-									ModuleManager.loadModules();
-								}
-								
-								// Start server
-								logger().info("Starting server...");
-								ServerManager.start();
-								
-								Events.fire(Type.SERVER_START);
-								
-								// Startup complete
-								logger().info("Startup complete.");
-								
-							} catch (IOException e) {
-								logger().error("Failed to start server");
-								e.printStackTrace();
-							}
-						});
-						worker.setName("Twine");
-						worker.start();
-					} else {
-						logger().error("Failed to start server");
-						r.cause().printStackTrace();
-					}
+				// Delete configs if --recreate-configs is enabled
+				if(_args.flag('r') || _args.option("recreate-configs")) {
+					FileChecker.delete(new String[] {
+						"twine.yml",
+						"domains.yml",
+						"cluster.yml",
+						"configs/"
+					});
+				}
+				
+				// Create default files
+				FileChecker.createIfNotPresent("twine.yml", new String[] {
+					"domains/default/index.html",
+					"domains/default/404.html",
+					"domains/default/500.html",
+					"domains/default/logo.png",	
 				});
-			} catch (IOException e) {
-				logger().error("Failed to start server");
-				e.printStackTrace();
+				FileChecker.createIfNotPresent(new String[] {
+					"twine.yml",
+					"cluster.yml",
+					"domains.yml",
+					"access.log",
+					"configs/",
+					"static/",
+					"modules/",
+					"dependencies/"
+				});
+				
+				logger().info("Loading configs...");
+				_conf = new YamlConfig("twine.yml");
+				_clusterConf = new YamlConfig("cluster.yml");
+				try {
+					// Load all configurations (reloadConfigurations() is just load when it's first called)
+					reloadConfigurations();
+					
+					// Initialize server so components will be available for modules
+					ServerManager.init(r -> {
+						if(r.succeeded()) {
+							// Execute in worker thread
+							Thread worker = new Thread(() -> {
+								// Catch any further initialization errors
+								try {
+									// Load modules
+									if(!_args.flag('m') && !_args.option("skip-modules")) {
+										logger().info("Loading modules...");
+										ModuleManager.loadModules();
+									}
+									
+									// Start server
+									logger().info("Starting server...");
+									ServerManager.start();
+									
+									Events.fire(Type.SERVER_START);
+									
+									// Startup complete
+									logger().info("Startup complete.");
+									
+								} catch (IOException e) {
+									logger().error("Failed to start server");
+									e.printStackTrace();
+								}
+							});
+							worker.setName("Twine");
+							worker.start();
+						} else {
+							logger().error("Failed to start server");
+							r.cause().printStackTrace();
+						}
+					});
+				} catch (IOException e) {
+					logger().error("Failed to start server");
+					e.printStackTrace();
+				}
+			} else {
+				// Retrieve jar path
+				String jarPath = Twine.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+				
+				// Collect arguments
+				ArrayList<String> pArgs = new ArrayList<String>();
+				pArgs.add("java");
+				pArgs.add("-classpath");
+				pArgs.add(jarPath+':'+"dependencies/*");
+				pArgs.add(Twine.class.getName());
+				pArgs.add("--classpath-loaded");
+				for(String arg : args)
+					pArgs.add(arg);
+				
+				System.out.println("NOTICE: Creating new process using `dependencies/` in the classpath. To disable, start with --classpath-loaded.");
+				
+				try {
+					// Initialize process creator
+					ProcessBuilder builder = new ProcessBuilder(pArgs);
+					
+					// Redirect process I/O
+					builder.redirectError(Redirect.INHERIT);
+					builder.redirectInput(Redirect.INHERIT);
+					builder.redirectOutput(Redirect.INHERIT);
+					
+					// Start process and wait for it to end
+					builder.start().waitFor();
+				} catch (IOException | InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		} else {
 			System.out.println("To start Twine, specify the -s/--start option. To print help, specify the -h/--help option.");
