@@ -56,7 +56,7 @@ public class ServerManager {
 	
 	// Extra
 	private static TwineWebsocket _ws = null;
-	private static SimpleDateFormat cacheDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH mm ss zzz");
+	private static SimpleDateFormat cacheDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
 	
 	/**
 	 * Initializes the server without starting it or registering handlers
