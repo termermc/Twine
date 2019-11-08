@@ -12,6 +12,9 @@ The compiled executable will be in `build/libs/` as `twine-all.jar`.
 ## Getting Started
 To start Twine, execute the jar with the `-s` option. This will generate all necessary configuration files and start the server. Once you start the server for the first time, terminate it and then observe the directory you executed in. Now you may proceed to the **Configuration** guide.
 
+## A Note About Starting Twine
+When starting Twine with `-s`, Twine will automatically create a new process with the proper JVM options to load dependencies from the `dependencies/` directory. To avoid creating a new process, start the server using either `start.sh` or `start.bat` (found in this repository, or in the releases tab).
+
 ## Configuration
 Before configuring, you must first locate the files you must configure. By this point, Twine will have generated the following configuring files:
  - twine.yml
