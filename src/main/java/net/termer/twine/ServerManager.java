@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -55,6 +56,7 @@ public class ServerManager {
 	
 	// Extra
 	private static TwineWebsocket _ws = null;
+	private static SimpleDateFormat cacheDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH mm ss zzz");
 	
 	/**
 	 * Initializes the server without starting it or registering handlers
@@ -213,6 +215,13 @@ public class ServerManager {
 		
 		// File-related headers
 		r.response().putHeader("content-length", Long.toString(f.length()));
+		r.response().putHeader("date", cacheDateFormat.format(new Date()));
+		
+		// Write caching headers if enabled
+		if((Boolean) Twine.config().get("staticCaching")) {
+			r.response().putHeader("cache-control", "public, max-age=86400");
+			r.response().putHeader("last-modified", cacheDateFormat.format(new Date(f.lastModified())));
+		}
 		
 		// Check if range requested
 		if(r.request().headers().get("Range") == null) {
