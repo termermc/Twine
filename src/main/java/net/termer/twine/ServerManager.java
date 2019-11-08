@@ -76,13 +76,13 @@ public class ServerManager {
 			// Configure cluster
 			JsonObject zkConf = new JsonObject()
 				.put("zookeeperHosts", (String) Twine.clusterConfig().get("clusterHosts"))
-				.put("sessionTimeout", (Integer) Twine.clusterConfig().get("sessionTimeout"))
-				.put("connectTimeout", (Integer) Twine.clusterConfig().get("connectTimeout"))
+				.put("sessionTimeout", (int) Twine.clusterConfig().get("sessionTimeout"))
+				.put("connectTimeout", (int) Twine.clusterConfig().get("connectTimeout"))
 				.put("rootPath", "io.vertx")
 				.put("retry", new JsonObject()
-					.put("initialSleepTime", (Integer) Twine.clusterConfig().get("retryInitialSleepTime"))
-					.put("intervalTimes", (Integer) Twine.clusterConfig().get("retryIntervalTime"))
-					.put("maxTimes", (Integer) Twine.clusterConfig().get("retryMaxTimes")
+					.put("initialSleepTime", (int) Twine.clusterConfig().get("retryInitialSleepTime"))
+					.put("intervalTimes", (int) Twine.clusterConfig().get("retryIntervalTime"))
+					.put("maxTimes", (int) Twine.clusterConfig().get("retryMaxTimes")
 				)
 			);
 			
@@ -120,11 +120,11 @@ public class ServerManager {
 		// Setup server
 		_router = Router.router(_vertx);
 		_httpOps = new HttpServerOptions()
-			.setLogActivity((Boolean) Twine.config().get("httpLogging"))
-			.setCompressionSupported((Boolean) Twine.config().get("compression"));
+			.setLogActivity((boolean) Twine.config().get("httpLogging"))
+			.setCompressionSupported((boolean) Twine.config().get("compression"));
 		
 		// Instantiate websocket utility
-		_ws = new TwineWebsocket(_vertx, (Integer) Twine.config().get("wsMaxBytesStreaming"));
+		_ws = new TwineWebsocket(_vertx, (int) Twine.config().get("wsMaxBytesStreaming"));
 		
 		// SSL
 		if(((String) Twine.config().get("keystore")).length() > 0) {
@@ -141,7 +141,7 @@ public class ServerManager {
 		_http = _vertx.createHttpServer(_httpOps);
 		
 		// Session (only if enabled)
-		if((Boolean) Twine.config().get("sessions")) {
+		if((boolean) Twine.config().get("sessions")) {
 			_router.route().handler(CookieHandler.create());
 			SessionStore ss = LocalSessionStore.create(ServerManager.vertx());
 			_sess = SessionHandler.create(ss);
@@ -154,7 +154,7 @@ public class ServerManager {
 		// Upload limit
 		_bodyHandler = BodyHandler.create();
 		_bodyHandler
-			.setBodyLimit((Integer) Twine.config().get("maxBodySize"));
+			.setBodyLimit((int) Twine.config().get("maxBodySize"));
 		// Limit body size before anything is done
 		_router.route().handler(_bodyHandler);
 		
@@ -163,8 +163,8 @@ public class ServerManager {
 		_staticHandler
 			.setIndexPage("index.html")
 			.setAllowRootFileSystemAccess(false)
-			.setCachingEnabled((Boolean) Twine.config().get("staticCaching"))
-			.setDirectoryListing((Boolean) Twine.config().get("staticBrowser"))
+			.setCachingEnabled((boolean) Twine.config().get("staticCaching"))
+			.setDirectoryListing((boolean) Twine.config().get("staticBrowser"))
 			.setEnableRangeSupport(true);
 	}
 	
@@ -174,7 +174,7 @@ public class ServerManager {
 	 */
 	protected static void start() {
 		// Setup websocket
-		if((Boolean) Twine.config().get("wsEnable"))
+		if((boolean) Twine.config().get("wsEnable"))
 			_router.route(((String) Twine.config().get("wsEndpoint"))+'*').handler(_ws.build());
 		
 		// Domain and static handlers
@@ -186,15 +186,15 @@ public class ServerManager {
 		_router.errorHandler(500, new ErrorHandler());
 		
 		// Start server(s) if HTTP is enabled
-		if(!(Boolean) Twine.config().get("disableHttp")) {
+		if(!(boolean) Twine.config().get("disableHttp")) {
 			// Start server
 			String addr = (String) Twine.config().get("ip");
-			int port = (Integer) Twine.config().get("port");
+			int port = (int) Twine.config().get("port");
 			_http.requestHandler(_router).listen(port, addr);
 			
 			// Setup HTTPS redirection, if enabled
-			if((Boolean) Twine.config().get("httpsRedirect")) {
-				int rport = (Integer) Twine.config().get("httpsRedirectPort");
+			if((boolean) Twine.config().get("httpsRedirect")) {
+				int rport = (int) Twine.config().get("httpsRedirectPort");
 				
 				_redir = _vertx.createHttpServer();
 				Router rrouter = Router.router(_vertx);
@@ -226,7 +226,7 @@ public class ServerManager {
 		r.response().putHeader("date", cacheDateFormat.format(new Date()));
 		
 		// Write caching headers if enabled
-		if((Boolean) Twine.config().get("staticCaching")) {
+		if((boolean) Twine.config().get("staticCaching")) {
 			r.response().putHeader("cache-control", "public, max-age=86400");
 			r.response().putHeader("last-modified", cacheDateFormat.format(new Date(f.lastModified())));
 		}
@@ -299,13 +299,13 @@ public class ServerManager {
 	protected static void reloadVars() {
 		_staticHandler
 			.setWebRoot((String) Twine.config().get("static"))
-			.setCachingEnabled((Boolean) Twine.config().get("staticCaching"))
-			.setDirectoryListing((Boolean) Twine.config().get("staticBrowser"));
+			.setCachingEnabled((boolean) Twine.config().get("staticCaching"))
+			.setDirectoryListing((boolean) Twine.config().get("staticBrowser"));
 		_bodyHandler
-			.setBodyLimit((Integer) Twine.config().get("maxBodySize"));
+			.setBodyLimit((int) Twine.config().get("maxBodySize"));
 		_httpOps
-			.setLogActivity((Boolean) Twine.config().get("httpLogging"))
-			.setCompressionSupported((Boolean) Twine.config().get("compression"));
+			.setLogActivity((boolean) Twine.config().get("httpLogging"))
+			.setCompressionSupported((boolean) Twine.config().get("compression"));
 	}
 	
 	/**
@@ -374,7 +374,7 @@ public class ServerManager {
 	private static class LoggingHandler implements Handler<RoutingContext> {
 		public void handle(RoutingContext r) {
 			// Check if logging is enabled
-			if((Boolean) Twine.config().get("httpLogging")) {
+			if((boolean) Twine.config().get("httpLogging")) {
 				// Write access log asynchronously
 				_vertx.executeBlocking(future -> {
 					String str = new Date().toString()+
