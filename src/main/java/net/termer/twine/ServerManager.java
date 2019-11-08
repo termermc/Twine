@@ -39,17 +39,21 @@ import net.termer.twine.utils.Writer;
  * @since 1.0-alpha
  */
 public class ServerManager {
+	// Vert.x components (servers, etc)
 	private static Vertx _vertx = null;
 	private static HttpServer _http = null;
 	private static HttpServer _redir = null;
 	private static Router _router = null;
 	
+	// Handlers
 	private static SessionHandler _sess = null;
 	private static StaticHandler _staticHandler = null;
 	private static BodyHandler _bodyHandler = null;
 	
+	// Options
 	private static HttpServerOptions _httpOps = null;
 	
+	// Extra
 	private static TwineWebsocket _ws = null;
 	
 	/**
@@ -171,44 +175,50 @@ public class ServerManager {
 		_router.errorHandler(404, new NotFoundHandler());
 		_router.errorHandler(500, new ErrorHandler());
 		
-		// Start server
-		String addr = (String) Twine.config().get("ip");
-		int port = (Integer) Twine.config().get("port");
-		_http.requestHandler(_router).listen(port, addr);
-		
-		// Setup HTTPS redirection, if enabled
-		if((Boolean) Twine.config().get("httpsRedirect")) {
-			int rport = (Integer) Twine.config().get("httpsRedirectPort");
+		// Start server(s) if HTTP is enabled
+		if(!(Boolean) Twine.config().get("disableHttp")) {
+			// Start server
+			String addr = (String) Twine.config().get("ip");
+			int port = (Integer) Twine.config().get("port");
+			_http.requestHandler(_router).listen(port, addr);
 			
-			_redir = _vertx.createHttpServer();
-			Router rrouter = Router.router(_vertx);
-			_redir.requestHandler(rrouter);
-			rrouter.route().handler(r -> {
-				String locStr = "https://"+
-								r.request().host()+
-								r.request().path();
-				if(r.request().query() != null) {
-					locStr += '?'+r.request().query();
-				}
-				r.response().putHeader("Location", locStr);
-				r.response().setStatusCode(301);
-				r.response().end();
-			});
-			_redir.listen(rport, addr);
+			// Setup HTTPS redirection, if enabled
+			if((Boolean) Twine.config().get("httpsRedirect")) {
+				int rport = (Integer) Twine.config().get("httpsRedirectPort");
+				
+				_redir = _vertx.createHttpServer();
+				Router rrouter = Router.router(_vertx);
+				_redir.requestHandler(rrouter);
+				rrouter.route().handler(r -> {
+					String locStr = "https://"+
+									r.request().host()+
+									r.request().path();
+					if(r.request().query() != null) {
+						locStr += '?'+r.request().query();
+					}
+					r.response().putHeader("Location", locStr);
+					r.response().setStatusCode(301);
+					r.response().end();
+				});
+				_redir.listen(rport, addr);
+			}
 		}
 	}
 	
 	// Sends a file and handles range support
 	private static void sendFile(RoutingContext r, File f) {
 		// Advertise range support
-		r.response().putHeader("Accept-Ranges", "bytes");
+		r.response().putHeader("accept-ranges", "bytes");
 		r.response().putHeader("vary", "accept-encoding");
+		
+		// File-related headers
+		r.response().putHeader("content-length", Long.toString(f.length()));
 		
 		// Check if range requested
 		if(r.request().headers().get("Range") == null) {
 			// Correct plain text header
 			if(MimeMapping.getMimeTypeForFilename(f.getName()) == "text/plain") {
-				r.response().putHeader("Content-Type", "text/plain;charset=UTF-8");
+				r.response().putHeader("content-type", "text/plain;charset=UTF-8");
 			}
 			
 			// Send full file
@@ -225,7 +235,7 @@ public class ServerManager {
 			
 			// Send headers
 			r.response().setStatusCode(206);
-			r.response().putHeader("Content-Range", "bytes "+off+"-"+(end-1)+"/"+len);
+			r.response().putHeader("content-range", "bytes "+off+"-"+(end-1)+"/"+len);
 			
 			// Send file part
 			r.response().sendFile(f.getAbsolutePath(), off, Math.min(end+1, len));

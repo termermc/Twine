@@ -65,3 +65,7 @@ wsMaxBytesStreaming: 131072
 
 # Whether to enable Vert.x clustering (futher configuration must be done in the cluster.yml file)
 clusterEnable: false
+
+# Whether to disable creating an HTTP server
+# Good option to enable if you're not using modules that use the HTTP server and aren't serving any files/domains.
+disableHttp: false
