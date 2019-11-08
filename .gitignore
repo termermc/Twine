@@ -7,7 +7,6 @@ build
 # Ignore some eclipse files
 bin/
 .settings/
-.classpath
 
 # Javadoc files
 doc/
