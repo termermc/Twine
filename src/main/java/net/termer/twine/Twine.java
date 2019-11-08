@@ -124,9 +124,15 @@ public class Twine {
 									
 									Events.fire(Type.SERVER_START);
 									
+									// Register shutdown hook
+									Thread sdHook = new Thread(() -> {
+										shutdown();
+									});
+									sdHook.setName("Twine-Shutdown");
+									Runtime.getRuntime().addShutdownHook(sdHook);
+									
 									// Startup complete
 									logger().info("Startup complete.");
-									
 								} catch (IOException e) {
 									logger().error("Failed to start server");
 									e.printStackTrace();
