@@ -29,31 +29,8 @@ public class ModuleManager {
 	 * @since 1.0-alpha
 	 */
 	public static void loadModules() throws IOException {
-		// Load dependency jars
 		ArrayList<URL> urls = new ArrayList<URL>();
 		ArrayList<String> classes = new ArrayList<String>();
-		
-		for(File jar : new File("dependencies/").listFiles()) {
-			if(jar.getName().toLowerCase().endsWith(".jar")) {
-				ZipFile zf = new ZipFile(jar.getAbsolutePath());
-				// Check if jar is a valid zip
-				if(zf.isValidZipFile()) {
-					urls.add(new URL("file:"+jar.getAbsolutePath()));
-					JarFile jf = new JarFile(jar.getAbsolutePath());
-					Enumeration<JarEntry> ent = jf.entries();
-					// Enumerate classes
-					while(ent.hasMoreElements()) {
-						String name = ent.nextElement().getName();
-						if(name.toLowerCase().endsWith(".class")) {
-							classes.add(name.replace("/", ".").replace(".class", ""));
-						}
-					}
-					jf.close();
-				} else {
-					throw new IOException("File is not a valid jarfile");
-				}
-			}
-		}
 		
 		// Begin loading module launch classes
 		ArrayList<String> launchClasses = new ArrayList<String>();
