@@ -15,6 +15,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.eventbus.EventBusOptions;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.impl.MimeMapping;
@@ -215,10 +216,12 @@ public class ServerManager {
 	private static void sendFile(RoutingContext r, File f) {
 		// Advertise range support
 		r.response().putHeader("accept-ranges", "bytes");
-		r.response().putHeader("vary", "accept-encoding");
 		
 		// File-related headers
-		r.response().putHeader("content-length", Long.toString(f.length()));
+		if(r.request().headers().get("Range") == null) {
+			r.response().putHeader("vary", "accept-encoding");
+			r.response().putHeader("content-length", Long.toString(f.length()));
+		}
 		r.response().putHeader("date", cacheDateFormat.format(new Date()));
 		
 		// Write caching headers if enabled
@@ -230,12 +233,14 @@ public class ServerManager {
 		// Check if range requested
 		if(r.request().headers().get("Range") == null) {
 			// Correct plain text header
-			if(MimeMapping.getMimeTypeForFilename(f.getName()) == "text/plain") {
+			if(MimeMapping.getMimeTypeForFilename(f.getName()) == "text/plain")
 				r.response().putHeader("content-type", "text/plain;charset=UTF-8");
-			}
 			
 			// Send full file
-			r.response().sendFile(f.getAbsolutePath());
+			if(r.request().method() != HttpMethod.HEAD)
+				r.response().sendFile(f.getAbsolutePath());
+			else
+				r.response().end();
 		} else {
 			// Resolve range parameters
 			String rangeStr = r.request().headers().get("Range").substring(6);
@@ -248,10 +253,10 @@ public class ServerManager {
 			
 			// Send headers
 			r.response().setStatusCode(206);
-			r.response().putHeader("content-range", "bytes "+off+"-"+(end-1)+"/"+len);
+			r.response().putHeader("content-range", "bytes "+off+"-"+(end)+"/"+len);
 			
 			// Send file part
-			r.response().sendFile(f.getAbsolutePath(), off, Math.min(end+1, len));
+			r.response().sendFile(f.getAbsolutePath(), off, Math.min(1+end-off, 1+len-off));
 		}
 	}
 	
@@ -430,7 +435,7 @@ public class ServerManager {
 							String processed = Documents.process(f, dom, r, new HashMap<String, Object>());
 							if(!r.response().ended()) {
 								if(r.response().headers().get("Content-Type") == null) {
-									r.response().putHeader("Content-Type", "text/html");
+									r.response().putHeader("content-type", "text/html");
 								}
 								r.response().end(processed);
 							}
@@ -482,7 +487,7 @@ public class ServerManager {
 					String processed = Documents.process(new File(dom.directory()+dom.notFound()), dom, r, new HashMap<String, Object>());
 					if(!r.response().ended()) {
 						if(r.response().headers().get("Content-Type") == null) {
-							r.response().putHeader("Content-Type", "text/html");
+							r.response().putHeader("content-type", "text/html");
 						}
 						r.response().end(processed);
 					}
