@@ -49,8 +49,6 @@ public class Documents {
 							.processors(_procsBlocking.toArray(new DocumentProcessor[0]))
 							.execute(opsRes -> {
 								if(opsRes.succeeded()) {
-									
-									
 									// Return result
 									promise.complete();
 								} else {
