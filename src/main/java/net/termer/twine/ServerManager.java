@@ -430,28 +430,38 @@ public class ServerManager {
 				);
 				
 				// Write response or pass it to another handler
-				if(f.exists()) {
-					try {
-						// Handle processing HTML documents
-						if(f.getName().endsWith(".html")) {
-							String processed = Documents.process(f, dom, r, new HashMap<String, Object>());
-							if(!r.response().ended()) {
-								if(r.response().headers().get("Content-Type") == null) {
-									r.response().putHeader("content-type", "text/html");
-								}
-								r.response().end(processed);
-							}
-						} else {
-							// Send file with ranges enabled
-							sendFile(r, f);
-						}
-					} catch (IOException e) {
-						r.response().sendFile(dom.directory()+dom.serverError()).end();
-						e.printStackTrace();
+				Domain domn = dom;
+				_vertx.fileSystem().exists(f.getPath(), exists -> {
+					// Handle errors
+					if(exists.failed()) {
+						Twine.logger().error("Failed to check if file "+f.getName()+"exists:");
+						exists.cause().printStackTrace();
+						return;
 					}
-				} else {
-					r.next();
-				}
+					
+					if(exists.result()) {
+						try {
+							// Handle processing HTML documents
+							if(f.getName().endsWith(".html")) {
+								String processed = Documents.process(f, domn, r, new HashMap<String, Object>());
+								if(!r.response().ended()) {
+									if(r.response().headers().get("Content-Type") == null) {
+										r.response().putHeader("content-type", "text/html");
+									}
+									r.response().end(processed);
+								}
+							} else {
+								// Send file with ranges enabled
+								sendFile(r, f);
+							}
+						} catch (IOException e) {
+							r.response().sendFile(domn.directory()+domn.serverError()).end();
+							e.printStackTrace();
+						}
+					} else {
+						r.next();
+					}
+				});
 			} catch(Exception e) {
 				Twine.logger().error("Unknown error occurred");
 				e.printStackTrace();
