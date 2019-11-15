@@ -1,16 +1,16 @@
 package net.termer.twine.documents;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import bsh.EvalError;
-import bsh.Interpreter;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
-import net.termer.twine.Twine;
-import net.termer.twine.documents.DocumentProcessor.DocumentOptions;
+import net.termer.twine.ServerManager;
+import net.termer.twine.documents.processor.ScriptProcessor;
 import net.termer.twine.utils.Domains.Domain;
 import net.termer.twine.utils.Reader;
 
@@ -22,115 +22,105 @@ import net.termer.twine.utils.Reader;
 public class Documents {
 	// Document processors
 	private static ArrayList<DocumentProcessor> _procs = new ArrayList<DocumentProcessor>();
+	private static ArrayList<DocumentProcessor> _procsBlocking = new ArrayList<DocumentProcessor>();
+	
+	// Script processor
+	private static ScriptProcessor _scriptProc = new ScriptProcessor();
 	
 	/**
-	 * Processes the provided document using available ScriptProcessors and scripts
-	 * @param doc the document to process
-	 * @param name the name of the document
-	 * @param domain the domain from which the document was accessed
-	 * @param route the RoutingContext for this document retrieval
-	 * @return the processed document
-	 * @since 1.0-alpha
+	 * Processes the provided document using available DocumentProcessors
+	 * @param doc The document to process
+	 * @param name The name of the document
+	 * @param domain The domain from which the document was accessed
+	 * @param route The RoutingContext for this document retrieval
+	 * @param handler The handler to deal with the result of this process
+	 * @since 1.0
 	 */
-	public static String process(String doc, String name, Domain domain, RoutingContext route, HashMap<String, Object> vars) {
-		DocumentOptions ops = new DocumentOptions(doc, name, domain);
+	public static void process(String doc, String name, Domain domain, RoutingContext route, Handler<AsyncResult<String>> handler) {
+		DocumentOptions ops = new DocumentOptions(doc, name, domain, _procs.toArray(new DocumentProcessor[0]), route);
 		
 		// Run registered processors
-		for(DocumentProcessor proc : _procs) {
-			proc.process(ops);
-		}
-		String cont = ops.content();
-		
-		// Check if scripting is enabled
-		if((Boolean) Twine.config().get("scripting")) {
-			if(cont.startsWith("<!--TES-->")) {
-				cont = cont.substring(11);
-				if(cont.startsWith("!")) cont = cont.substring(1);
-				
-				// Process scripts
-				if(cont.contains("<?java") && cont.contains("?>")) {
-					vars.put("domain", domain);
-					vars.put("name", name);
-					vars.put("request", route.request());
-					vars.put("response", route.response());
-					vars.put("route", route);
-					
-					int index = 0;
-					boolean proceed = true;
-					Interpreter inter = new Interpreter();
-					
-					// Add variables
-					String[] keys = vars.keySet().toArray(new String[0]);
-					Object[] values = vars.values().toArray(new Object[0]);
-					
-					for(int i = 0; i < keys.length; i++) {
-						try {
-							inter.set(keys[i], values[i]);
-						} catch (EvalError ex) {
-							ex.printStackTrace();
-						}
-					}
-					
-					// While there are more scripts available
-					while(proceed) {
-						int opening = cont.indexOf("<?java", index)+6;
-						int closing = cont.indexOf("?>", index);
-						if(opening > 5 && closing > -1) {
-							String script = cont.substring(opening, closing);
-							
-							Out result = new Out(domain);
-							try {
-								inter.set("out", result);
-								inter.eval(script.trim());
-							} catch (Exception e) {
-								e.printStackTrace();
-								// Append error if enabled
-								if((Boolean) Twine.config().get("scriptExceptions")) {
-									result.append(e.getMessage());
+		ops.execute(res -> {
+			if(res.succeeded()) {
+				// Execute blocking processors (if any)
+				if(_procsBlocking.size() > 0) {
+					ServerManager.vertx().executeBlocking(promise -> {
+						ops
+							.processors(_procsBlocking.toArray(new DocumentProcessor[0]))
+							.execute(opsRes -> {
+								if(opsRes.succeeded()) {
+									
+									
+									// Return result
+									promise.complete();
+								} else {
+									promise.fail(opsRes.cause());
 								}
-							}
-							cont = cont.replace("<?java"+script+"?>", result.toString());
-							index++;
+							});
+					}, codeRes -> {
+						if(codeRes.succeeded()) {
+							// Execute script processor
+							_scriptProc.process(ops);
+							
+							// Finish
+							handler.handle(Future.succeededFuture(ops.content()));
 						} else {
-							proceed = false;
+							handler.handle(Future.failedFuture(codeRes.cause()));
 						}
-					}
+					});
+				} else {
+					// Execute script processor
+					_scriptProc.process(ops);
+					
+					// Finish
+					handler.handle(Future.succeededFuture(ops.content()));
 				}
+				
+				handler.handle(Future.succeededFuture(ops.content()));
+			} else {
+				handler.handle(Future.failedFuture(res.cause()));
 			}
-		}
-		
-		return cont;
+		});
 	}
 	
 	/**
 	 * Processes the provided document using available ScriptProcessors and scripts
-	 * @param doc the document
-	 * @param domain the domain from which the document was accessed
-	 * @param route the RoutingContext for this document retrieval
-	 * @return the processed document
+	 * @param doc The document
+	 * @param domain The domain from which the document was accessed
+	 * @param route The RoutingContext for this document retrieval
+	 * @param handler The handler to deal with the result of this process
 	 * @throws IOException if reading the document fails
-	 * @since 1.0-alpha
+	 * @since 1.0
 	 */
-	public static String process(File doc, Domain domain, RoutingContext route, HashMap<String, Object> vars) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		
+	public static void process(File doc, Domain domain, RoutingContext route, Handler<AsyncResult<String>> handler) throws IOException {
 		// Read file
-		FileInputStream fin = new FileInputStream(doc);
-		while(fin.available() > 0) {
-			sb.append((char)fin.read());
-		}
-		fin.close();
-		
-		return process(sb.toString(), doc.getName(), domain, route, vars);
+		ServerManager.vertx().fileSystem().readFile(doc.getAbsolutePath(), res -> {
+			if(res.succeeded()) {
+				String document = res.result().toString(Charset.defaultCharset());
+				
+				// Pass to normal processor
+				process(document, doc.getName(), domain, route, handler);
+			} else {
+				handler.handle(Future.failedFuture(res.cause()));
+			}
+		});
 	}
 	
 	/**
-	 * Registers a document processor
-	 * @param proc the DocumentProcessor
-	 * @since 1.0-alpha
+	 * Registers a normal (non-blocking) document processor
+	 * @param proc The DocumentProcessor
+	 * @since 1.0
 	 */
 	public static void processor(DocumentProcessor proc) {
 		_procs.add(proc);
+	}
+	/**
+	 * Registers a blocking DocumentProcessor. Note that blocking processors are executed after non-blocking ones.
+	 * @param proc The DocumentProcessor
+	 * @since 1.0
+	 */
+	public static void blockingProcessor(DocumentProcessor proc) {
+		_procsBlocking.add(proc);
 	}
 	
 	/**

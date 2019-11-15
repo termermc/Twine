@@ -3,7 +3,6 @@ package net.termer.twine;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.TimeZone;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -52,6 +51,10 @@ public class ServerManager {
 	private static SessionHandler _sess = null;
 	private static StaticHandler _staticHandler = null;
 	private static BodyHandler _bodyHandler = null;
+	private static LoggingHandler _loggingHandler = new LoggingHandler();
+	private static DomainHandler _domainHandler = new DomainHandler();
+	private static NotFoundHandler _notFoundHandler = new NotFoundHandler();
+	private static ErrorHandler _errorHandler = new ErrorHandler();
 	
 	// Options
 	private static HttpServerOptions _httpOps = null;
@@ -147,7 +150,7 @@ public class ServerManager {
 		}
 		
 		// Logger
-		_router.route().handler(new LoggingHandler());
+		_router.route().handler(_loggingHandler);
 		
 		// Upload limit
 		_bodyHandler = BodyHandler.create();
@@ -176,12 +179,12 @@ public class ServerManager {
 			_router.route(((String) Twine.config().get("wsEndpoint"))+'*').handler(_ws.build());
 		
 		// Domain and static handlers
-		_router.route().handler(new DomainHandler());
+		_router.route().handler(_domainHandler);
 		_router.route().handler(_staticHandler);
 		
 		// Error handlers
-		_router.errorHandler(404, new NotFoundHandler());
-		_router.errorHandler(500, new ErrorHandler());
+		_router.errorHandler(404, _notFoundHandler);
+		_router.errorHandler(500, _errorHandler);
 		
 		// Start server(s) if HTTP is enabled
 		if(!(boolean) Twine.config().get("disableHttp")) {
@@ -436,6 +439,7 @@ public class ServerManager {
 					if(exists.failed()) {
 						Twine.logger().error("Failed to check if file "+f.getName()+"exists:");
 						exists.cause().printStackTrace();
+						_errorHandler.handle(r);
 						return;
 					}
 					
@@ -443,13 +447,23 @@ public class ServerManager {
 						try {
 							// Handle processing HTML documents
 							if(f.getName().endsWith(".html")) {
-								String processed = Documents.process(f, domn, r, new HashMap<String, Object>());
-								if(!r.response().ended()) {
-									if(r.response().headers().get("Content-Type") == null) {
-										r.response().putHeader("content-type", "text/html");
+								Documents.process(f, domn, r, res -> {
+									if(res.succeeded()) {
+										// Send response if not ended
+										if(!r.response().ended()) {
+											if(r.response().headers().get("Content-Type") == null) {
+												r.response().putHeader("content-type", "text/html");
+											}
+											r.response().end(res.result());
+										}
+									} else {
+										Twine.logger().error("Failed to process document "+f.getName()+':');
+										res.cause().printStackTrace();
+										
+										// Pass to error handler
+										_errorHandler.handle(r);
 									}
-									r.response().end(processed);
-								}
+								});
 							} else {
 								// Send file with ranges enabled
 								sendFile(r, f);
@@ -496,13 +510,25 @@ public class ServerManager {
 				}
 				// Process document only if it's HTML
 				if(dom.notFound().endsWith(".html")) {
-					String processed = Documents.process(new File(dom.directory()+dom.notFound()), dom, r, new HashMap<String, Object>());
-					if(!r.response().ended()) {
-						if(r.response().headers().get("Content-Type") == null) {
-							r.response().putHeader("content-type", "text/html");
+					Documents.process(new File(dom.directory()+dom.notFound()), dom, r, res -> {
+						if(res.succeeded()) {
+							// Write document to response
+							String processed = res.result();
+							
+							// Write type if not already
+							if(!r.response().ended()) {
+								if(r.response().headers().get("Content-Type") == null) {
+									r.response().putHeader("content-type", "text/html");
+								}
+								
+								// End the response
+								r.response().end(processed);
+							}
+						} else {
+							// Pass to error handler
+							_errorHandler.handle(r);
 						}
-						r.response().end(processed);
-					}
+					});
 				} else {
 					// Send a file with ranges enabled
 					sendFile(r, new File(dom.directory()+dom.notFound()));
