@@ -93,7 +93,8 @@ public class ServerManager {
 				.setClustered(true);
 			VertxOptions vertxOps = new VertxOptions()
 				.setClusterManager(clusterMan)
-				.setEventBusOptions(ebOps);
+				.setEventBusOptions(ebOps)
+				.setWorkerPoolSize((int) Twine.config().get("workerPoolSize"));
 			Vertx.clusteredVertx(vertxOps, vertx -> {
 				if(vertx.succeeded()) {
 					_vertx = vertx.result();

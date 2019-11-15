@@ -23,6 +23,10 @@ compression: false
 # Static path
 static: "static/"
 
+# The amount of worker threads to initialize Vert.x with
+# Worker threads are used for executing blocking code in modules.
+workerPoolSize: 10
+
 # Enable/disable embedded scripting
 scripting: false
 
