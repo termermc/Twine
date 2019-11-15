@@ -2,6 +2,7 @@ package net.termer.twine;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
@@ -104,6 +105,7 @@ public class ServerManager {
 					callback.handle(Future.failedFuture(vertx.cause()));
 				}
 			});
+			
 		} else {
 			// Create normal Vert.x instance
 			_vertx = Vertx.vertx();
@@ -215,32 +217,29 @@ public class ServerManager {
 	// Sends a file and handles range support
 	private static void sendFile(RoutingContext r, File f) {
 		// Advertise range support
-		r.response().putHeader("accept-ranges", "bytes");
-		
-		// File-related headers
-		if(r.request().headers().get("Range") == null) {
-			r.response().putHeader("vary", "accept-encoding");
-			r.response().putHeader("content-length", Long.toString(f.length()));
-		}
-		r.response().putHeader("date", cacheDateFormat.format(new Date()));
+		r.response().putHeader("Accept-Ranges", "bytes");
+		r.response().putHeader("vary", "accept-encoding");
 		
 		// Write caching headers if enabled
 		if((boolean) Twine.config().get("staticCaching")) {
+			r.response().putHeader("date", cacheDateFormat.format(new Date()));
 			r.response().putHeader("cache-control", "public, max-age=86400");
 			r.response().putHeader("last-modified", cacheDateFormat.format(new Date(f.lastModified())));
 		}
 		
 		// Check if range requested
 		if(r.request().headers().get("Range") == null) {
+			// Send file length on HEAD
+			if(r.request().method() == HttpMethod.HEAD)
+				r.response().putHeader("content-length", Long.toString(f.length()));
+			
 			// Correct plain text header
-			if(MimeMapping.getMimeTypeForFilename(f.getName()) == "text/plain")
-				r.response().putHeader("content-type", "text/plain;charset=UTF-8");
+			if(MimeMapping.getMimeTypeForFilename(f.getName()) == "text/plain") {
+				r.response().putHeader("Content-Type", "text/plain;charset=UTF-8");
+			}
 			
 			// Send full file
-			if(r.request().method() != HttpMethod.HEAD)
-				r.response().sendFile(f.getAbsolutePath());
-			else
-				r.response().end();
+			r.response().sendFile(f.getAbsolutePath());
 		} else {
 			// Resolve range parameters
 			String rangeStr = r.request().headers().get("Range").substring(6);
@@ -251,12 +250,16 @@ public class ServerManager {
 				end = Long.parseLong(rangeStr.split("-")[1]);
 			}
 			
+			// Send segment length on HEAD
+			if(r.request().method() == HttpMethod.HEAD)
+				r.response().putHeader("content-length", Long.toString((end-off)+1));
+			
 			// Send headers
 			r.response().setStatusCode(206);
-			r.response().putHeader("content-range", "bytes "+off+"-"+(end)+"/"+len);
+			r.response().putHeader("Content-Range", "bytes "+off+"-"+(end-1)+"/"+len);
 			
 			// Send file part
-			r.response().sendFile(f.getAbsolutePath(), off, Math.min(1+end-off, 1+len-off));
+			r.response().sendFile(f.getAbsolutePath(), off, Math.min(end+1, len));
 		}
 	}
 	
