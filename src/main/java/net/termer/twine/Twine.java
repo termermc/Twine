@@ -162,7 +162,7 @@ public class Twine {
 				ArrayList<String> pArgs = new ArrayList<String>();
 				pArgs.add("java");
 				pArgs.add("-classpath");
-				pArgs.add(jarPath+':'+"dependencies/*");
+				pArgs.add(jarPath+':'+"dependencies/*:modules/*");
 				pArgs.add(Twine.class.getName());
 				pArgs.add("--classpath-loaded");
 				for(String arg : args)
