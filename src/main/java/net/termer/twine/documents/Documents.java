@@ -73,8 +73,6 @@ public class Documents {
 					// Finish
 					handler.handle(Future.succeededFuture(ops.content()));
 				}
-				
-				handler.handle(Future.succeededFuture(ops.content()));
 			} else {
 				handler.handle(Future.failedFuture(res.cause()));
 			}

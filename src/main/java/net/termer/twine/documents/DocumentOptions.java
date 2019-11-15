@@ -143,6 +143,7 @@ public class DocumentOptions {
 	 * @since 1.0
 	 */
 	public void execute(Handler<AsyncResult<DocumentOptions>> handler) {
+		_handler = handler;
 		_procIndex = 0;
 		if(_procs.length > 0)
 			_procs[0].process(this);
