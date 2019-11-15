@@ -49,6 +49,10 @@ public class Twine {
 		
 		// Check options/flags
 		if(_args.option("help") || _args.flag('h')) {
+			// Fetch the jar path, and extract its name
+			String[] jarPath = Twine.class.getProtectionDomain().getCodeSource().getLocation().getFile().split("/");
+			String jar = jarPath[jarPath.length-1];
+			
 			System.out.println("java -jar twine-"+_verStr+".jar [OPTIONS]...");
 			System.out.println("\n"
 					+ "-s, --start             starts the server\n"
@@ -57,9 +61,10 @@ public class Twine {
 					+ "-m, --skip-modules      skips loading modules\n"
 					+ "-r, --recreate-configs  recreates all config files\n"
 					+ "--config=KEY:VALUE      overrides any value in twine.yml\n"
+					+ "--classpath-loaded      forces Twine to assume dependencies are loaded\n"
 					+ "\n"
-					+ "Examples:"
-					+ "  java -jar twine-"+_verStr+".jar -rm  Starts the server while recreating all configs and with modules skipped\n"
+					+ "Examples:\n"
+					+ "  java -jar "+jar+" -rm  Starts the server while recreating all configs and with modules skipped\n"
 					+ "\n"
 					+ "For more info on Twine, along with its source code, you can visit its GitHub page: <https://github.com/termermc/twine>");
 		} else if(_args.option("version") || _args.flag('v')) {
