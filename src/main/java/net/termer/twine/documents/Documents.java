@@ -61,10 +61,8 @@ public class Documents {
 							});
 					}, codeRes -> {
 						if(codeRes.succeeded()) {
-							if((boolean) Twine.config().get("scripting")) {
-								// Execute script processor
-								_scriptProc.process(ops);
-							}
+							// Execute script processor
+							_scriptProc.process(ops);
 							
 							// Finish
 							handler.handle(Future.succeededFuture(ops.content()));
@@ -73,10 +71,8 @@ public class Documents {
 						}
 					});
 				} else {
-					if((boolean) Twine.config().get("scripting")) {
-						// Execute script processor
-						_scriptProc.process(ops);
-					}
+					// Execute script processor
+					_scriptProc.process(ops);
 					
 					// Finish
 					handler.handle(Future.succeededFuture(ops.content()));
