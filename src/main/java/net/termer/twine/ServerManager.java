@@ -446,13 +446,13 @@ public class ServerManager {
 					if(exists.result()) {
 						try {
 							// Handle processing HTML documents
-							if(f.getName().endsWith(".html")) {
+							if(Documents.validExtension(f.getName())) {
 								Documents.process(f, domn, r, res -> {
 									if(res.succeeded()) {
 										// Send response if not ended
 										if(!r.response().ended()) {
 											if(r.response().headers().get("Content-Type") == null) {
-												r.response().putHeader("content-type", "text/html");
+												r.response().putHeader("content-type", f.getName().endsWith(".html") ? "text/html;charset=UTF-8" : "text/plain;charset=UTF-8");
 											}
 											r.response().end(res.result());
 										}

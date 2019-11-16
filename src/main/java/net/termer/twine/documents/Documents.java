@@ -4,13 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import net.termer.twine.ServerManager;
-import net.termer.twine.Twine;
 import net.termer.twine.documents.processor.ScriptProcessor;
 import net.termer.twine.utils.Domains.Domain;
 import net.termer.twine.utils.Reader;
@@ -26,7 +26,7 @@ public class Documents {
 	private static ArrayList<DocumentProcessor> _procsBlocking = new ArrayList<DocumentProcessor>();
 	
 	// File extensions to process
-	private static ArrayList<String> _extensions = new ArrayList<String>();
+	private static ArrayList<String> _extensions = new ArrayList<String>(Arrays.asList(new String[] { "html" }));
 	
 	// Script processor
 	private static ScriptProcessor _scriptProc = new ScriptProcessor();
@@ -121,6 +121,33 @@ public class Documents {
 	 */
 	public static void blockingProcessor(DocumentProcessor proc) {
 		_procsBlocking.add(proc);
+	}
+	
+	/**
+	 * Registers a file extension to be run through document processors
+	 * @param extension The file extension to register, e.g. "txt"
+	 * @since 1.0
+	 */
+	public static void registerExtension(String extension) {
+		_extensions.add(extension);
+	}
+	
+	/**
+	 * Checks if the provided filename contains a valid extension to be processed
+	 * @param filename The name of the file to check the extension of
+	 * @return Whether this filename contains a valid extension to be processed
+	 * @since 1.0
+	 */
+	public static boolean validExtension(String filename) {
+		boolean valid = false;
+		
+		// Check extension against list of extensions
+		if(filename.contains(".")) {
+			String[] parts = filename.split("\\.");
+			valid = _extensions.contains(parts[parts.length-1]);
+		}
+		
+		return valid;
 	}
 	
 	/**
