@@ -566,7 +566,8 @@ public class ServerManager {
 					// Send generic message if sending file fails
 					Twine.logger().error("Failed to send 500 document:");
 					res.cause().printStackTrace();
-					r.response().end("Internal error");
+					if(!r.response().ended())
+						r.response().end("Internal error");
 				}
 			});
 		}
