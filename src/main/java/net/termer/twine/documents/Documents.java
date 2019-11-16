@@ -10,6 +10,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import net.termer.twine.ServerManager;
+import net.termer.twine.Twine;
 import net.termer.twine.documents.processor.ScriptProcessor;
 import net.termer.twine.utils.Domains.Domain;
 import net.termer.twine.utils.Reader;
@@ -23,6 +24,9 @@ public class Documents {
 	// Document processors
 	private static ArrayList<DocumentProcessor> _procs = new ArrayList<DocumentProcessor>();
 	private static ArrayList<DocumentProcessor> _procsBlocking = new ArrayList<DocumentProcessor>();
+	
+	// File extensions to process
+	private static ArrayList<String> _extensions = new ArrayList<String>();
 	
 	// Script processor
 	private static ScriptProcessor _scriptProc = new ScriptProcessor();
@@ -57,8 +61,10 @@ public class Documents {
 							});
 					}, codeRes -> {
 						if(codeRes.succeeded()) {
-							// Execute script processor
-							_scriptProc.process(ops);
+							if((boolean) Twine.config().get("scripting")) {
+								// Execute script processor
+								_scriptProc.process(ops);
+							}
 							
 							// Finish
 							handler.handle(Future.succeededFuture(ops.content()));
@@ -67,8 +73,10 @@ public class Documents {
 						}
 					});
 				} else {
-					// Execute script processor
-					_scriptProc.process(ops);
+					if((boolean) Twine.config().get("scripting")) {
+						// Execute script processor
+						_scriptProc.process(ops);
+					}
 					
 					// Finish
 					handler.handle(Future.succeededFuture(ops.content()));
