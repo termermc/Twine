@@ -84,8 +84,7 @@ public class ModuleManager {
 		_priorities.put(Priority.MEDIUM, new ArrayList<TwineModule>());
 		_priorities.put(Priority.HIGH, new ArrayList<TwineModule>());
 		for(TwineModule module : _modules) {
-			if(!((Boolean) Twine.config().get("ignoreModuleCheck")) &&
-				compatible(module.twineVersion())) {
+			if(compatible(module.twineVersion()) || (boolean) Twine.config().get("ignoreModuleCheck")) {
 				_priorities.get(module.priority()).add(module);
 			} else {
 				Twine.logger().error("Module \""+module.name()+"\" is written for Twine version "+module.twineVersion()+"\" which is incompatible with version "+Twine.version()+".");
@@ -160,6 +159,7 @@ public class ModuleManager {
 	
 	// Returns whether the specified compatible version String is compatible with this version of Twine
 	private static boolean compatible(String ver) {
+		// Parse out version numbers
 		String sver = Twine.version().toLowerCase();
 		int lvl = verLvl(sver);
 		if(sver.contains("-")) sver = sver.split("-")[0];
@@ -170,9 +170,10 @@ public class ModuleManager {
 		if(ver.contains("-")) ver = ver.split("-")[0];
 		double verNum = Double.parseDouble(ver);
 		
+		// Resolve compatibility
 		boolean compat = false;
 		if(plus) {
-			if(lvl >= vlvl && sverNum >= verNum) {
+			if(lvl >= vlvl && vlvl > 1 && sverNum >= verNum) {
 				compat = true;
 			}
 		} else if(lvl == vlvl && sverNum == verNum) {
