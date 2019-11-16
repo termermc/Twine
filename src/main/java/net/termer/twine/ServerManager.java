@@ -439,8 +439,7 @@ public class ServerManager {
 					// Handle errors
 					if(exists.failed()) {
 						Twine.logger().error("Failed to check if file "+f.getName()+"exists:");
-						exists.cause().printStackTrace();
-						_errorHandler.handle(r);
+						r.fail(exists.cause());
 						return;
 					}
 					
@@ -459,10 +458,9 @@ public class ServerManager {
 										}
 									} else {
 										Twine.logger().error("Failed to process document "+f.getName()+':');
-										res.cause().printStackTrace();
 										
 										// Pass to error handler
-										_errorHandler.handle(r);
+										r.fail(res.cause());
 									}
 								});
 							} else {
@@ -527,7 +525,7 @@ public class ServerManager {
 							}
 						} else {
 							// Pass to error handler
-							_errorHandler.handle(r);
+							r.fail(res.cause());
 						}
 					});
 				} else {
@@ -537,8 +535,7 @@ public class ServerManager {
 			} catch (IOException e) {
 				// Report error and send 500 page
 				Twine.logger().error("Failed to process 404/not found document");
-				e.printStackTrace();
-				r.response().sendFile(dom.directory()+dom.serverError());
+				r.fail(e);
 			}
 		}
 	}
