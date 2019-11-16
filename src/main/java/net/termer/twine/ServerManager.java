@@ -560,15 +560,15 @@ public class ServerManager {
 				dom = Twine.domains().defaultDomain();
 			}
 			
-			try {
-				// Send 500 error document
-				r.response().sendFile(dom.directory()+dom.serverError());
-			} catch(Exception e) {
-				// Send generic message if sending file fails
-				Twine.logger().error("Failed to send 500 document:");
-				e.printStackTrace();
-				r.response().end("Internal error");
-			}
+			// Send 500 error document
+			r.response().sendFile(dom.directory()+dom.serverError(), res -> {
+				if(res.failed()) {
+					// Send generic message if sending file fails
+					Twine.logger().error("Failed to send 500 document:");
+					res.cause().printStackTrace();
+					r.response().end("Internal error");
+				}
+			});
 		}
 	}
 }
