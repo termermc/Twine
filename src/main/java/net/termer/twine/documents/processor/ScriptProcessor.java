@@ -74,6 +74,8 @@ public class ScriptProcessor implements DocumentProcessor {
 							proceed = false;
 						}
 					}
+					
+					ops.content(cont);
 				}
 			}
 		}
