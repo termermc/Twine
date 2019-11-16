@@ -168,7 +168,7 @@ public class Twine {
 				for(String arg : args)
 					pArgs.add(arg);
 				
-				System.out.println("NOTICE: Creating new process using `dependencies/` in the classpath. To disable, start with --classpath-loaded.");
+				System.out.println("NOTICE: Creating new process using \"dependencies/\" and \"modules/\" in the classpath. To disable, start with --classpath-loaded.");
 				
 				try {
 					// Initialize process creator
