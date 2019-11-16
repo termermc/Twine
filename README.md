@@ -13,7 +13,7 @@ The compiled executable will be in `build/libs/` as `twine-all.jar`.
 To start Twine, execute the jar with the `-s` option. This will generate all necessary configuration files and start the server. Once you start the server for the first time, terminate it and then observe the directory you executed in. Now you may proceed to the **Configuration** guide.
 
 ## A Note About Starting Twine
-When starting Twine with `-s`, Twine will automatically create a new process with the proper JVM options to load dependencies from the `dependencies/` directory. To avoid creating a new process, start the server using either `start.sh` or `start.bat` (found in this repository, or in the releases tab).
+When starting Twine with `-s`, Twine will automatically create a new process with the proper JVM options to load dependencies from the `dependencies/` directory, and load module classes from the `modules/` directory. To avoid creating a new process, start the server using either `start.sh` or `start.bat` (found in this repository, or in the releases tab).
 
 ## Configuration
 Before configuring, you must first locate the files you must configure. By this point, Twine will have generated the following configuring files:
@@ -41,7 +41,7 @@ To deploy a module jar, simply add it to the `modules/` directory, and start the
 ## Embedded Java Scripting
 A slightly less orthodox feature in Twine is the ability to script in a Java-like language in a sort of PHP fashion. To enable scripting, set `script` to `true` in `twine.yml`. To enable scripting on an HTML file, begin it with `<!--TES-->` (TES stands for Twine Embedded Scripting). To use Java in the file, use `<?java [java/beanshell code] ?>`. Anything inside of the `<?java` and `?>` tags will be executed, and any output will be insert inline.
 
-Scripts run inside of HTML documents have access to a variable called `out`. More info on `out` can be found [here](https://termer.net/javadoc/twine/1.1-alpha/net/termer/twine/documents/Documents.Out.html). The other variables are domain (an instance of the [Domain](https://termer.net/javadoc/twine/1.1-alpha/net/termer/twine/utils/Domains.Domain.html) representing the domain the page was accessed from), name (the name of the document), request (the Vert.x HttpServerRequest for the request), response (the Vert.x HttpServerResponse for the request), and route (the Vert.x RoutingContext for the request).
+Scripts run inside of HTML documents have access to a variable called `out`. More info on `out` can be found [here](https://termer.net/javadoc/twine/1.0/net/termer/twine/documents/Documents.Out.html). The other variables are domain (an instance of the [Domain](https://termer.net/javadoc/twine/1.0/net/termer/twine/utils/Domains.Domain.html) representing the domain the page was accessed from), name (the name of the document), request (the Vert.x HttpServerRequest for the request), response (the Vert.x HttpServerResponse for the request), and route (the Vert.x RoutingContext for the request).
 
 Below is an example of a document that prints the path of the request:
 ```java
