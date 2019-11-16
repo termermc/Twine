@@ -87,7 +87,7 @@ public class ModuleManager {
 			if(compatible(module.twineVersion()) || (boolean) Twine.config().get("ignoreModuleCheck")) {
 				_priorities.get(module.priority()).add(module);
 			} else {
-				Twine.logger().error("Module \""+module.name()+"\" is written for Twine version "+module.twineVersion()+"\" which is incompatible with version "+Twine.version()+".");
+				Twine.logger().error("Module \""+module.name()+"\" is written for Twine version \""+module.twineVersion()+"\" which is incompatible with version "+Twine.version()+".");
 				Twine.logger().error("The module will not be loaded.");
 			}
 		}
