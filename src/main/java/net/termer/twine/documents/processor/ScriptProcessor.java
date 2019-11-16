@@ -61,6 +61,7 @@ public class ScriptProcessor implements DocumentProcessor {
 								inter.set("out", result);
 								inter.eval(script.trim());
 							} catch (Exception e) {
+								e.printStackTrace();
 								// Append error if enabled
 								if((Boolean) Twine.config().get("scriptExceptions")) {
 									result.append(e.getMessage());
