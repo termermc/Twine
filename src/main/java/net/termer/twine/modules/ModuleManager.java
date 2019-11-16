@@ -30,7 +30,6 @@ public class ModuleManager {
 	 */
 	public static void loadModules() throws IOException {
 		ArrayList<URL> urls = new ArrayList<URL>();
-		ArrayList<String> classes = new ArrayList<String>();
 		
 		// Begin loading module launch classes
 		ArrayList<String> launchClasses = new ArrayList<String>();
@@ -52,7 +51,6 @@ public class ModuleManager {
 							if(clazz.endsWith("Module")) {
 								launchClasses.add(clazz);
 							}
-							classes.add(clazz);
 						}
 					}
 					jf.close();
@@ -64,22 +62,18 @@ public class ModuleManager {
 		
 		// Loop through launch classes
 		URLClassLoader ucl = new URLClassLoader(urls.toArray(new URL[0]));
-		for(String clazz : classes) {
+		for(String launchClass : launchClasses) {
 			try {
-				Class<?> cls = ucl.loadClass(clazz);
-				
-				for(String launchClass : launchClasses) {
-					if(launchClass.equals(clazz)) {
-						for(Class<?> inter : cls.getInterfaces()) {
-							// If class implements TwineModule, add it to the modules array
-							if(inter.getTypeName().equals("net.termer.twine.modules.TwineModule")) {
-								_modules.add((TwineModule) cls.newInstance());
-								break;
-							}
-						}
+				Class<?> cls = ucl.loadClass(launchClass);
+				for(Class<?> inter : cls.getInterfaces()) {
+					// If class implements TwineModule, add it to the modules array
+					if(inter.getTypeName().equals("net.termer.twine.modules.TwineModule")) {
+						_modules.add((TwineModule) cls.newInstance());
+						break;
 					}
 				}
-			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+			} catch(ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+				Twine.logger().error("Failed to load module class \""+launchClass+"\":");
 				e.printStackTrace();
 			}
 		}
