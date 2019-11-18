@@ -110,14 +110,17 @@ public class ModuleManager {
 	 * @since 1.0-alpha
 	 */
 	public static void shutdownModules() {
-		for(TwineModule m : _priorities.get(Priority.LOW)) {
-			sdMod(m);
-		}
-		for(TwineModule m : _priorities.get(Priority.MEDIUM)) {
-			sdMod(m);
-		}
-		for(TwineModule m : _priorities.get(Priority.HIGH)) {
-			sdMod(m);
+		// Check if modules were disabled on startup
+		if(!(Twine.serverArgs().flag('m') || Twine.serverArgs().option("skip-modules"))) {
+			for(TwineModule m : _priorities.get(Priority.LOW)) {
+				sdMod(m);
+			}
+			for(TwineModule m : _priorities.get(Priority.MEDIUM)) {
+				sdMod(m);
+			}
+			for(TwineModule m : _priorities.get(Priority.HIGH)) {
+				sdMod(m);
+			}
 		}
 	}
 	
