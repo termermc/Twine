@@ -168,6 +168,12 @@ public class ModuleManager {
 		int vlvl = verLvl(ver);
 		boolean plus = ver.endsWith("+");
 		if(ver.contains("-")) ver = ver.split("-")[0];
+		
+		// Trim off "+"
+		if(ver.endsWith("+"))
+			ver = ver.substring(0, ver.length()-1);
+		
+		// Parse version number
 		double verNum = Double.parseDouble(ver);
 		
 		// Resolve compatibility
