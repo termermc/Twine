@@ -21,7 +21,6 @@ import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -144,7 +143,6 @@ public class ServerManager {
 		
 		// Session (only if enabled)
 		if((boolean) Twine.config().get("sessions")) {
-			_router.route().handler(CookieHandler.create());
 			SessionStore ss = LocalSessionStore.create(ServerManager.vertx());
 			_sess = SessionHandler.create(ss);
 			_router.route().handler(_sess);
