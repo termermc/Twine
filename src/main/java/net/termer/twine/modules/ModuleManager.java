@@ -7,6 +7,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -21,7 +22,7 @@ import net.termer.twine.modules.TwineModule.Priority;
  */
 public class ModuleManager {
 	private static ArrayList<TwineModule> _modules = new ArrayList<TwineModule>();
-	private static HashMap<Priority, ArrayList<TwineModule>> _priorities = new HashMap<Priority, ArrayList<TwineModule>>();
+	private static HashMap<Priority, CopyOnWriteArrayList<TwineModule>> _priorities = new HashMap<Priority, CopyOnWriteArrayList<TwineModule>>();
 	
 	/**
 	 * Loads all modules and dependencies
@@ -80,9 +81,9 @@ public class ModuleManager {
 		ucl.close();
 		
 		// Loop through modules and sort them
-		_priorities.put(Priority.LOW, new ArrayList<TwineModule>());
-		_priorities.put(Priority.MEDIUM, new ArrayList<TwineModule>());
-		_priorities.put(Priority.HIGH, new ArrayList<TwineModule>());
+		_priorities.put(Priority.LOW, new CopyOnWriteArrayList<TwineModule>());
+		_priorities.put(Priority.MEDIUM, new CopyOnWriteArrayList<TwineModule>());
+		_priorities.put(Priority.HIGH, new CopyOnWriteArrayList<TwineModule>());
 		for(TwineModule module : _modules) {
 			if(compatible(module.twineVersion()) || (boolean) Twine.config().get("ignoreModuleCheck")) {
 				_priorities.get(module.priority()).add(module);
