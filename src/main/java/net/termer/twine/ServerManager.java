@@ -177,7 +177,7 @@ public class ServerManager {
 	protected static void start() {
 		// Setup websocket
 		if((boolean) Twine.config().get("wsEnable"))
-			_router.route(((String) Twine.config().get("wsEndpoint"))+'*').handler(_ws.build());
+			_router.mountSubRouter(((String) Twine.config().get("wsEndpoint")), _ws.build());
 		
 		// Domain and static handlers
 		_router.route().handler(_domainHandler);

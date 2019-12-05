@@ -3,6 +3,7 @@ package net.termer.twine;
 import java.util.ArrayList;
 
 import io.vertx.core.Vertx;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
@@ -106,10 +107,10 @@ public class TwineWebsocket {
 	
 	/**
 	 * Creates a new SockJSHandler from the applied settings
-	 * @return a new SockJSHandler
+	 * @return a new Router for handling SockJS connections
 	 * @since 1.0-alpha
 	 */
-	protected SockJSHandler build() {
+	protected Router build() {
 		_bridge.setInboundPermitted(_inbound);
 		_bridge.setOutboundPermitted(_outbound);
 		return SockJSHandler
