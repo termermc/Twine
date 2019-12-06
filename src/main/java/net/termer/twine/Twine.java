@@ -32,8 +32,8 @@ public class Twine {
 	
 	// Instance variables
 	private static ArgParser _args;
-	private static String _verStr = "1.2";
-	private static int _verInt = 5;
+	private static String _verStr = "1.3";
+	private static int _verInt = 6;
 	private static Logger _logger = LoggerFactory.getLogger(Twine.class);
 	private static YamlConfig _conf = null;
 	private static YamlConfig _clusterConf = null;
@@ -130,9 +130,7 @@ public class Twine {
 									Events.fire(Type.SERVER_START);
 									
 									// Register shutdown hook
-									Thread sdHook = new Thread(() -> {
-										shutdown();
-									});
+									Thread sdHook = new Thread(Twine::_shutdown);
 									sdHook.setName("Twine-Shutdown");
 									Runtime.getRuntime().addShutdownHook(sdHook);
 									
@@ -240,22 +238,30 @@ public class Twine {
 			}
 		}
 	}
+	/**
+	 * Calls all shutdown methods on Modules, and then shuts down Twine
+	 * @since 1.3
+	 */
 	public static void shutdown() {
 		if(Events.fire(Type.SERVER_STOP)) {
-			logger().info("Shutting down down Twine...");
-			logger().info("Shutting down modules...");
-			ModuleManager.shutdownModules();
-			logger().info("Shuttdown down Vert.x...");
-			ServerManager.vertx().close(r -> {
-				if(r.succeeded()) {
-					logger().info("Vert.x successfully shutdown.");
-				} else {
-					logger().error("Failed to shutdown Vert.x!");
-				}
-				logger().info("Exiting!");
-				System.exit(0);
-			});
+			System.exit(0);
 		}
+	}
+	// Shuts down Twine, calls module shutdown hooks
+	private static void _shutdown() {
+		logger().info("Shutting down down Twine...");
+		logger().info("Shutting down modules...");
+		ModuleManager.shutdownModules();
+		logger().info("Shutting down Vert.x...");
+		ServerManager.vertx().close(r -> {
+			if(r.succeeded()) {
+				logger().info("Vert.x successfully shutdown.");
+			} else {
+				logger().error("Failed to shutdown Vert.x!");
+			}
+			logger().info("Exiting!");
+			System.exit(0);
+		});
 	}
 	
 	/**
