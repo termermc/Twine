@@ -296,6 +296,22 @@ public class ServerManager {
 	public static BodyHandler bodyHandler() {
 		return _bodyHandler;
 	}
+	/**
+	 * Returns the StaticHandler for this instance
+	 * @return the StaticHandler
+	 * @since 1.3
+	 */
+	public static StaticHandler staticHandler() {
+		return _staticHandler;
+	}
+	/**
+	 * Returns the SessionHandler for this instance
+	 * @return the SessionHandler
+	 * @since 1.3
+	 */
+	public static SessionHandler sessionHandler() {
+		return _sess;
+	}
 	
 	/**
 	 * Reloads all server-specified variables
