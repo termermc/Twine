@@ -92,7 +92,13 @@ public class ModuleManager {
 				Twine.logger().error("The module will not be loaded.");
 			}
 		}
-		
+	}
+	
+	/**
+	 * Runs the initialize() methods on all modules according to their priority
+	 * @since 1.3
+	 */
+	public static void runModuleInits() {
 		// Loop through and execute module initializers
 		for(TwineModule m : _priorities.get(Priority.HIGH)) {
 			init(m, Priority.HIGH);
@@ -102,6 +108,22 @@ public class ModuleManager {
 		}
 		for(TwineModule m : _priorities.get(Priority.LOW)) {
 			init(m, Priority.LOW);
+		}
+	}
+	/**
+	 * Runs the preinitialize() methods on all modules according to their priority
+	 * @since 1.3
+	 */
+	public static void runModulePreInits() {
+		// Loop through and execute module initializers
+		for(TwineModule m : _priorities.get(Priority.HIGH)) {
+			preinit(m, Priority.HIGH);
+		}
+		for(TwineModule m : _priorities.get(Priority.MEDIUM)) {
+			preinit(m, Priority.MEDIUM);
+		}
+		for(TwineModule m : _priorities.get(Priority.LOW)) {
+			preinit(m, Priority.LOW);
 		}
 	}
 	
@@ -143,7 +165,7 @@ public class ModuleManager {
 	
 	// Initializes the provided TwineModule
 	private static void init(TwineModule m, Priority p) {
-		Twine.logger().info("Loading module \""+m.name()+"\"...");
+		Twine.logger().info("Initializing module \""+m.name()+"\"...");
 		try {
 			m.initialize();
 		} catch(AbstractMethodError e) {
@@ -151,6 +173,24 @@ public class ModuleManager {
 			Twine.logger().error("The module will not be loaded.");
 		} catch(Exception e) {
 			Twine.logger().error("Error occurred while initializing module \""+m.name()+"\":");
+			Twine.logger().error(e.getClass().getName()+": "+e.getMessage()+"");
+			for(StackTraceElement ste : e.getStackTrace()) {
+				Twine.logger().error(ste.getClassName()+"("+ste.getFileName()+":"+Integer.toString(ste.getLineNumber())+")");
+			}
+			Twine.logger().info("The module will be removed from the modules stack, but can still be referenced by other modules.");
+			_modules.remove(m);
+			_priorities.get(p).remove(m);
+		}
+	}
+	// Pre-Initializes the provided TwineModule
+	private static void preinit(TwineModule m, Priority p) {
+		Twine.logger().info("Pre-initializing module \""+m.name()+"\"...");
+		try {
+			m.preinitialize();
+		} catch(AbstractMethodError e) {
+			Twine.logger().warn("Module \""+m.name()+"\" does not contain a pre-initilization method.");
+		} catch(Exception e) {
+			Twine.logger().error("Error occurred while pre-initializing module \""+m.name()+"\":");
 			Twine.logger().error(e.getClass().getName()+": "+e.getMessage()+"");
 			for(StackTraceElement ste : e.getStackTrace()) {
 				Twine.logger().error(ste.getClassName()+"("+ste.getFileName()+":"+Integer.toString(ste.getLineNumber())+")");

@@ -118,9 +118,20 @@ public class Twine {
 								// Catch any further initialization errors
 								try {
 									// Load modules
+									ModuleManager.loadModules();
+									
+									// Execute pre-initialization methods if modules are enabled
 									if(!_args.flag('m') && !_args.option("skip-modules")) {
-										logger().info("Loading modules...");
-										ModuleManager.loadModules();
+										logger().info("Starting modules...");
+										ModuleManager.runModulePreInits();
+									}
+									
+									// Finish initialization
+									ServerManager.finishInit();
+									
+									// Execute initialization methods if modules are enabled
+									if(!_args.flag('m') && !_args.option("skip-modules")) {
+										ModuleManager.runModuleInits();
 									}
 									
 									// Start server

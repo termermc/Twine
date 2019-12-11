@@ -155,8 +155,6 @@ public class ServerManager {
 		_bodyHandler = BodyHandler.create();
 		_bodyHandler
 			.setBodyLimit((int) Twine.config().get("maxBodySize"));
-		// Limit body size before anything is done
-		_router.route().handler(_bodyHandler);
 		
 		// Static handler
 		_staticHandler = StaticHandler.create((String) Twine.config().get("static"));
@@ -166,6 +164,15 @@ public class ServerManager {
 			.setCachingEnabled((boolean) Twine.config().get("staticCaching"))
 			.setDirectoryListing((boolean) Twine.config().get("staticBrowser"))
 			.setEnableRangeSupport(true);
+	}
+	
+	/**
+	 * Finishes initialization (registers handlers for after module preinitialize() calls)
+	 * @since 1.3 
+	 */
+	protected static void finishInit() {
+		// Limit body size before anything is done
+		_router.route().handler(_bodyHandler);
 	}
 	
 	/**

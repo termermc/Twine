@@ -37,6 +37,7 @@ public interface TwineModule {
 	 * @since 1.0-alpha
 	 */
 	public String twineVersion();
+	
 	/**
 	 * The method called when the module is loaded
 	 * @since 1.0-alpha
@@ -47,4 +48,12 @@ public interface TwineModule {
 	 * @since 1.0-alpha
 	 */
 	public void shutdown();
+	
+	/**
+	 * The method called before any handlers are registered by Twine.
+	 * Any handlers registered here will have to handle body parsing themselves, as no BodyHandler will be registered until initalize() has been called.
+	 * Appropriate for upload handlers, and other types of handlers that need to stream request body content.
+	 * @since 1.3
+	 */
+	public void preinitialize();
 }
