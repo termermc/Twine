@@ -1,5 +1,5 @@
 # Twine
-A fully featured application server built for boilerplate-less Vert.x web applications 
+![Twine logo](https://raw.githubusercontent.com/termermc/Twine/master/src/main/resources/logo_small.png) A fully featured application server built for boilerplate-less Vert.x web applications
 
 ## Getting Twine
 To obtain a pre-compiled release of Twine, check the [releases](https://github.com/termermc/twine/releases) tab. To compile, download the source from the releases tab or clone the repository for the latest development version, then follow the **Building** guide. 
