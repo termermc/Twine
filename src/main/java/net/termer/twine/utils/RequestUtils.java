@@ -11,17 +11,22 @@ import net.termer.twine.utils.Domains.Domain;
  */
 public class RequestUtils {
 	/**
-	 * Transforms the specified host string into a domain string
+	 * Transforms the specified host string into a domain string, or returns "default" if host is null
 	 * @param host the host string
 	 * @return the domain string
 	 * @since 1.0-alpha
 	 */
 	public static String domain(String host) {
-		String dom = host.toLowerCase();
-		if(host.contains(":")) {
-			dom = host.split(":")[0];
+		// Return "default" for null hosts
+		if(host == null) {
+			return "default";
+		} else {
+			String dom = host.toLowerCase();
+			if(host.contains(":")) {
+				dom = host.split(":")[0];
+			}
+			return dom;
 		}
-		return dom;
 	}
 	
 	public static String pathToFile(String path, Domain dom) {
