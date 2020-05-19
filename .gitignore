@@ -10,3 +10,6 @@ bin/
 
 # Javadoc files
 doc/
+
+# IntelliJ files
+.idea/
