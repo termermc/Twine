@@ -31,7 +31,7 @@ public class YamlConfig {
 	
 	/**
 	 * Loads the config file
-	 * @throws FileNotFoundException if the path assigned to this Config does not exist
+	 * @throws IOException if the path assigned to this Config does not exist
 	 * @since 1.0-alpha
 	 */
 	public void load() throws IOException {

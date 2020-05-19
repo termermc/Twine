@@ -192,7 +192,7 @@ public class Documents {
 		 * Appends the specified file (relative to the domain associated with this Out) to this Out object.
 		 * Recursively appends all files in a directory if specified path is a directory
 		 * @param path the path of the file or directory
-		 * @param whether to sanitize the file(s) for HTML injection
+		 * @param sanitize whether to sanitize the file(s) for HTML injection
 		 * @return this Out object, so it can be used fluently
 		 * @throws IOException if reading the file(s) fails
 		 * @since 1.0-alpha
@@ -241,12 +241,12 @@ public class Documents {
 			return this;
 		}
 		/**
-		 * Appends an HTML <br/> tag to this Out object
+		 * Appends an HTML &lt;br&gt; tag to this Out object
 		 * @return this Out object, so it can be used fluently
 		 * @since 1.0-alpha
 		 */
 		public Out br() {
-			_sb.append("<br/>");
+			_sb.append("<br>");
 			return this;
 		}
 		

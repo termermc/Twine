@@ -170,7 +170,7 @@ public class StringFilter {
 	}
 	
 	/**
-	 * Escapes HTML by replacing less-than and greater-than symbols with &lt and &gt. 
+	 * Escapes HTML by replacing less-than and greater-than symbols with &amp;lt and &amp;gt.
 	 * @param content the String to escape
 	 * @return the escaped String
 	 * @since 1.0-alpha

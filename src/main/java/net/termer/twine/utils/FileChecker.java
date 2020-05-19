@@ -17,6 +17,7 @@ public class FileChecker {
 	 * Checks if the specified file paths exist.
 	 * Paths ending with "/" are recognized as directories, otherwise they are treated as normal files.
 	 * @param paths the file paths
+	 * @return whether the paths specified all exist
 	 * @since 1.0-alpha
 	 */
 	public static boolean filesPresent(String[] paths) {

@@ -64,6 +64,7 @@ public class ServerManager {
 	
 	/**
 	 * Initializes the server without starting it or registering handlers
+	 * @param callback The callback that will be run when initialization is finished
 	 * @since 1.0-alpha
 	 */
 	protected static void init(Handler<AsyncResult<Vertx>> callback) {
