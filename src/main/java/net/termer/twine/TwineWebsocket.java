@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.bridge.PermittedOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 
@@ -17,7 +17,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 public class TwineWebsocket {
 	private Vertx _vertx = null;
 	private int _maxBytes = -1;
-	private BridgeOptions _bridge = new BridgeOptions();
+	private SockJSBridgeOptions _bridge = new SockJSBridgeOptions();
 	private SockJSHandlerOptions _sjsOps = new SockJSHandlerOptions();
 	private ArrayList<PermittedOptions> _inbound = new ArrayList<PermittedOptions>();
 	private ArrayList<PermittedOptions> _outbound = new ArrayList<PermittedOptions>();
@@ -34,7 +34,7 @@ public class TwineWebsocket {
 	 * @return the BridgeOptions
 	 * @since 1.0-alpha
 	 */
-	public BridgeOptions bridgeOptions() {
+	public SockJSBridgeOptions bridgeOptions() {
 		return _bridge;
 	}
 	/**
@@ -68,7 +68,7 @@ public class TwineWebsocket {
 	}
 	/**
 	 * Allows websocket clients to sesnd messages to all channels that match the specified channel regex
-	 * @param channel The channel to allow
+	 * @param channelRegex The channel to allow
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
 	 */
@@ -78,7 +78,7 @@ public class TwineWebsocket {
 	}
 	/**
 	 * Allows websocket clients to receive messages from all channels that match the specified channel regex
-	 * @param channel The channel to allow
+	 * @param channelRegex The channel to allow
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
 	 */
