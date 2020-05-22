@@ -8,6 +8,12 @@ To obtain a pre-compiled release of Twine, check the [releases](https://github.c
 
 ## Building
 Before building, be sure you have at least JDK 8 and Gradle installed.
+Also be sure to add
+```
+nexusUsername: dummyuser
+nexusPassword: drowssap
+```
+into your gradle.properties file located in `$YourHomeFolder/.gradle/`. This is required for the publish task, even though it is not used while building.
 To build on Unix/Unix-like systems (Darwin, Linux, BSD) run `./gradlew shadowJar` and on Windows run `gradlew.bat shadowJar`.
 The compiled executable will be in `build/libs/` as `twine-all.jar`.
 
