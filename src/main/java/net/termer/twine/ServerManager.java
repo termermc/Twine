@@ -34,6 +34,9 @@ import net.termer.twine.documents.Documents;
 import net.termer.twine.utils.RequestUtils;
 import net.termer.twine.utils.Writer;
 
+import static net.termer.twine.Twine.config;
+import static net.termer.twine.Twine.logger;
+
 /**
  * Utility class to manage internal Vert.x instance
  * @author termer
@@ -178,9 +181,10 @@ public class ServerManager {
 	
 	/**
 	 * Starts the server
+	 * @param callback The callback that will be run when the server has been started
 	 * @since 1.0-alpha
 	 */
-	protected static void start() {
+	protected static void start(Handler<AsyncResult<Vertx>> callback) {
 		// Setup websocket
 		if((boolean) Twine.config().get("wsEnable"))
 			_router.mountSubRouter(((String) Twine.config().get("wsEndpoint")), _ws.build());
@@ -198,28 +202,50 @@ public class ServerManager {
 			// Start server
 			String addr = (String) Twine.config().get("ip");
 			int port = (int) Twine.config().get("port");
-			_http.requestHandler(_router).listen(port, addr);
-			
-			// Setup HTTPS redirection, if enabled
-			if((boolean) Twine.config().get("httpsRedirect")) {
-				int rport = (int) Twine.config().get("httpsRedirectPort");
-				
-				_redir = _vertx.createHttpServer();
-				Router rrouter = Router.router(_vertx);
-				_redir.requestHandler(rrouter);
-				rrouter.route().handler(r -> {
-					String locStr = "https://"+
-									r.request().host()+
-									r.request().path();
-					if(r.request().query() != null) {
-						locStr += '?'+r.request().query();
+			_http.requestHandler(_router).listen(port, addr, r -> {
+				if(r.succeeded()) {
+					logger().info("Server listening on "+config().get("ip")+':'+r.result().actualPort());
+
+					// Setup HTTPS redirection, if enabled
+					if((boolean) Twine.config().get("httpsRedirect")) {
+						int rport = (int) Twine.config().get("httpsRedirectPort");
+
+						_redir = _vertx.createHttpServer();
+						Router rrouter = Router.router(_vertx);
+						_redir.requestHandler(rrouter);
+						rrouter.route().handler(ctx -> {
+							String locStr = "https://" +
+									ctx.request().host() +
+									ctx.request().path();
+							if (ctx.request().query() != null) {
+								locStr += '?' + ctx.request().query();
+							}
+							ctx.response().putHeader("Location", locStr);
+							ctx.response().setStatusCode(301);
+							ctx.response().end();
+						});
+						_redir.listen(rport, addr, redirRes -> {
+							if(redirRes.succeeded()) {
+								// Emit CLUSTER_JOIN event if clustering is enabled
+								if((boolean) Twine.config().get("clusterEnable"))
+									Events.fire(Events.Type.CLUSTER_JOIN);
+
+								callback.handle(Future.succeededFuture());
+							} else {
+								callback.handle(Future.failedFuture(redirRes.cause()));
+							}
+						});
+					} else {
+						// Emit CLUSTER_JOIN event if clustering is enabled
+						if((boolean) Twine.config().get("clusterEnable"))
+							Events.fire(Events.Type.CLUSTER_JOIN);
+
+						callback.handle(Future.succeededFuture());
 					}
-					r.response().putHeader("Location", locStr);
-					r.response().setStatusCode(301);
-					r.response().end();
-				});
-				_redir.listen(rport, addr);
-			}
+				} else {
+					callback.handle(Future.failedFuture(r.cause()));
+				}
+			});
 		}
 	}
 	
@@ -417,7 +443,7 @@ public class ServerManager {
 						Writer.append("access.log", str+'\n');
 						future.complete();
 					} catch (IOException e) {
-						Twine.logger().error("Failed to write access log");
+						logger().error("Failed to write access log");
 						e.printStackTrace();
 						future.fail("Error writing to log file");
 					}
@@ -460,7 +486,7 @@ public class ServerManager {
 				_vertx.fileSystem().exists(f.getPath(), exists -> {
 					// Handle errors
 					if(exists.failed()) {
-						Twine.logger().error("Failed to check if file "+f.getName()+"exists:");
+						logger().error("Failed to check if file "+f.getName()+"exists:");
 						r.fail(exists.cause());
 						return;
 					}
@@ -479,7 +505,7 @@ public class ServerManager {
 											r.response().end(res.result());
 										}
 									} else {
-										Twine.logger().error("Failed to process document "+f.getName()+':');
+										logger().error("Failed to process document "+f.getName()+':');
 										
 										// Pass to error handler
 										r.fail(res.cause());
@@ -490,7 +516,9 @@ public class ServerManager {
 								sendFile(r, f);
 							}
 						} catch (IOException e) {
-							r.response().sendFile(domn.directory()+domn.serverError()).end();
+							if(!r.response().ended())
+								r.response().sendFile(domn.directory()+domn.serverError()).end();
+
 							e.printStackTrace();
 						}
 					} else {
@@ -498,7 +526,7 @@ public class ServerManager {
 					}
 				});
 			} catch(Exception e) {
-				Twine.logger().error("Unknown error occurred");
+				logger().error("Unknown error occurred");
 				e.printStackTrace();
 				r.response().end("Unknown error occurred");
 			}
@@ -556,7 +584,7 @@ public class ServerManager {
 				}
 			} catch (IOException e) {
 				// Report error and send 500 page
-				Twine.logger().error("Failed to process 404/not found document");
+				logger().error("Failed to process 404/not found document");
 				r.fail(e);
 			}
 		}
@@ -572,7 +600,7 @@ public class ServerManager {
 			String domain = RequestUtils.domain(r.request().host());
 			Domain dom = null;
 			
-			Twine.logger().error("Internal server error:");
+			logger().error("Internal server error:");
 			r.failure().printStackTrace();
 			
 			// Select domain
@@ -586,7 +614,7 @@ public class ServerManager {
 			r.response().sendFile(dom.directory()+dom.serverError(), res -> {
 				if(res.failed()) {
 					// Send generic message if sending file fails
-					Twine.logger().error("Failed to send 500 document:");
+					logger().error("Failed to send 500 document:");
 					res.cause().printStackTrace();
 					if(!r.response().ended())
 						r.response().end("Internal error");
