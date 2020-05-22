@@ -46,6 +46,10 @@ Here's an example of a Twine module that creates the route `/hello/:name` on the
 
 ```java
 public class Module implements TwineModule {
+    public void preinitialize() {
+        Twine.logger().info("Module is pre-initializing...");
+    } 
+
 
 	public void initialize() {
 		// Get default domain
@@ -74,7 +78,7 @@ public class Module implements TwineModule {
 	}
 
 	public String twineVersion() {
-		return "1.0+";
+		return "1.5+";
 	}
 }
 ``` 
@@ -82,4 +86,5 @@ public class Module implements TwineModule {
 For more info on the Vert.x API, check out the [Vert.x](https://vertx.io/docs/vertx-core/java/) and [Vert.x-Web](https://vertx.io/docs/vertx-web/java/) docs.
 
 ## Deploying Your Module
-To deploy your module, compile it, place it in Twine's `modules/` directory, and its dependencies in the `dependencies/` directory.
+To deploy your module, compile it, place it in Twine's `modules/` directory, and place its dependency jars in the `dependencies/` directory.
+When you start Twine it will load and run the module.
