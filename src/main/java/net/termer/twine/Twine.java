@@ -7,16 +7,13 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
 
+import net.termer.twine.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import net.termer.twine.Events.Type;
 import net.termer.twine.modules.ModuleManager;
-import net.termer.twine.utils.ArgParser;
-import net.termer.twine.utils.YamlConfig;
-import net.termer.twine.utils.Domains;
-import net.termer.twine.utils.FileChecker;
 
 /**
  * Main Twine class
@@ -28,7 +25,7 @@ public class Twine {
 	 * The unique ID of this Twine instance.
 	 * This ID will be sent along with all Twine server events when publishing to the event bus.
 	 */
-	public static final float INSTANCE_ID = new Random().nextInt(10000);
+	public static final float INSTANCE_ID = new Random().nextInt(Integer.MAX_VALUE);
 	
 	// Instance variables
 	private static ArgParser _args;
@@ -136,31 +133,36 @@ public class Twine {
 									
 									// Start server
 									logger().info("Starting server...");
-									ServerManager.start();
-									
-									Events.fire(Type.SERVER_START);
-									
-									// Register shutdown hook
-									Thread sdHook = new Thread(Twine::_shutdown);
-									sdHook.setName("Twine-Shutdown");
-									Runtime.getRuntime().addShutdownHook(sdHook);
-									
-									// Startup complete
-									logger().info("Startup complete.");
+									ServerManager.start(startRes -> {
+										if(startRes.succeeded()) {
+											Events.fire(Type.SERVER_START);
+
+											// Register shutdown hook
+											Thread sdHook = new Thread(Twine::_shutdown);
+											sdHook.setName("Twine-Shutdown");
+											Runtime.getRuntime().addShutdownHook(sdHook);
+
+											// Startup complete
+											logger().info("Startup complete.");
+										} else {
+											logger().error("Failed to start server:");
+											startRes.cause().printStackTrace();
+										}
+									});
 								} catch (IOException e) {
-									logger().error("Failed to start server");
+									logger().error("Failed to start server:");
 									e.printStackTrace();
 								}
 							});
 							worker.setName("Twine");
 							worker.start();
 						} else {
-							logger().error("Failed to start server");
+							logger().error("Failed to start server:");
 							r.cause().printStackTrace();
 						}
 					});
 				} catch (IOException e) {
-					logger().error("Failed to start server");
+					logger().error("Failed to start server:");
 					e.printStackTrace();
 				}
 			} else {
@@ -213,18 +215,39 @@ public class Twine {
 		if(proceed) {
 			_conf.load();
 			_clusterConf.load();
+
+			// Modify config based on environment variables
+			for(String envKey : System.getenv().keySet()) {
+				if(envKey.startsWith("TW_CONF_")) {
+					String key = envKey.substring(8);
+					String val = System.getenv(envKey);
+
+					if(PrimitiveUtils.isBoolean(val)) {
+						_conf.tempSet(key, Boolean.parseBoolean(val));
+					} else if(PrimitiveUtils.isInt(val)) {
+						_conf.tempSet(key, Integer.parseInt(val));
+					} else if(PrimitiveUtils.isDouble(val)) {
+						_conf.tempSet(key, Double.parseDouble(val));
+					} else {
+						_conf.tempSet(key, val);
+					}
+				}
+			}
+
 			// Modify config based on CLI options
 			if(_args.option("config")) {
-				String op = _args.optionString("config");
-				if(op.contains(":")) {
-					String key = op.substring(0, op.indexOf(':'));
-					String val = op.substring(op.indexOf(':')+1);
-					if(val.equals("true") || val.equals("false")) {
-						_conf.tempSet(key, Boolean.parseBoolean(val));
-					} else {
-						try {
+				for(String op : _args.optionValues("config")) {
+					if (op.contains(":")) {
+						String key = op.substring(0, op.indexOf(':'));
+						String val = op.substring(op.indexOf(':') + 1);
+
+						if(PrimitiveUtils.isBoolean(val)) {
+							_conf.tempSet(key, Boolean.parseBoolean(val));
+						} else if(PrimitiveUtils.isInt(val)) {
 							_conf.tempSet(key, Integer.parseInt(val));
-						} catch(NumberFormatException e) {
+						} else if(PrimitiveUtils.isDouble(val)) {
+							_conf.tempSet(key, Double.parseDouble(val));
+						} else {
 							_conf.tempSet(key, val);
 						}
 					}
