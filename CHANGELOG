@@ -1,0 +1,18 @@
+=== Version 1.5 ===
+Breaking changes: Yes
+New Feature(s): Yes
+Bugfixes: Yes
+
+Changes
+ - Added MODULES_LOADED, MODULES_PREINITIALIZED and MODULES_INITIALIZED events
+ - Added ModuleManager.modules() and ModuleManager.modules(Priority) methods to return loaded modules
+ - Added configuration through environment variables (such as TW_CONF_port=8080)
+ - Made Events.fire(Events.Type) method public
+ - Server now emits CLUSTER_JOIN event when it has initialized if clustering is enabled
+ - Updated all libraries to latest version, including Vert.x to 3.9.1 (Possibly breaking)
+ - Replaced deprecated BridgeOptions with SockJSBridgeOptions (Breaking, changes TwineWebsocket.bridgeOptions method return type from BridgeOptions to SockJSBridgeOptions)
+ - Replaced ArgParser option String values with ArrayLists of Strings (Breaking, changes ArgParser.options() return type to HashMap<String, ArrayList<String>>)
+ - Expanded max value for Twine.INSTANCE_ID to Integer.MAX_VALUE
+ - Fixed very poor threading in Events class
+ - Fixed issues in Javadoc
+ - Fixed occasional failures to write error document
