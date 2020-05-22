@@ -12,6 +12,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import net.lingala.zip4j.ZipFile;
+import net.termer.twine.Events;
 import net.termer.twine.Twine;
 import net.termer.twine.modules.TwineModule.Priority;
 
@@ -79,6 +80,9 @@ public class ModuleManager {
 			}
 		}
 		ucl.close();
+
+		// Fire MODULES_LOADED event
+		Events.fire(Events.Type.MODULES_LOADED);
 		
 		// Loop through modules and sort them
 		_priorities.put(Priority.LOW, new CopyOnWriteArrayList<TwineModule>());
@@ -109,6 +113,9 @@ public class ModuleManager {
 		for(TwineModule m : _priorities.get(Priority.LOW)) {
 			init(m, Priority.LOW);
 		}
+
+		// Fire MODULES_INITIALIZED event
+		Events.fire(Events.Type.MODULES_INITIALIZED);
 	}
 	/**
 	 * Runs the preinitialize() methods on all modules according to their priority
@@ -125,6 +132,9 @@ public class ModuleManager {
 		for(TwineModule m : _priorities.get(Priority.LOW)) {
 			preinit(m, Priority.LOW);
 		}
+
+		// Fire MODULES_PREINITIALIZED event
+		Events.fire(Events.Type.MODULES_PREINITIALIZED);
 	}
 	
 	/**
@@ -146,7 +156,25 @@ public class ModuleManager {
 			}
 		}
 	}
-	
+
+	/**
+	 * Returns all loaded modules
+	 * @return all loaded modules
+	 * @since 1.5
+	 */
+	public static TwineModule[] modules() {
+		return _modules.toArray(new TwineModule[0]);
+	}
+	/**
+	 * Returns all modules with the provided priority
+	 * @param priority the priority of modules to return
+	 * @return all modules with the provided priority
+	 * @since 1.0
+	 */
+	public static TwineModule[] modules(Priority priority) {
+		return _priorities.get(priority).toArray(new TwineModule[0]);
+	}
+
 	// Shuts down a module
 	private static void sdMod(TwineModule m) {
 		try {
