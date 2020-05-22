@@ -9,14 +9,14 @@ Maven dependency:
 <dependency>
   <groupId>net.termer.twine</groupId>
   <artifactId>twine</artifactId>
-  <version>1.5a</version>
+  <version>1.5b</version>
   <type>module</type>
 </dependency>
 ```
 
 Gradle dependency:
 ```groovy
-implementation 'net.termer.twine:twine:1.5a'
+implementation 'net.termer.twine:twine:1.5b'
 ```
 
 Once you've included it, create a new class called `Module` that implements the interface [TwineModule](https://termer.net/javadoc/twine/1.5/net/termer/twine/modules/TwineModule.html).
