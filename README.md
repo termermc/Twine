@@ -33,6 +33,16 @@ The `scripting` and `scriptExceptions` fields are for managing embedded Java scr
 
 `cluster.yml` is the cluster configuration file for Twine. It won't be used for anything unless `clusterEnable` is set to true in `twine.yml`, so unless you're doing any clustering, don't worry about it. For more on clustering, see the **Clustering** guide.
 
+If you need to programmatically configure Twine, you can modify `twine.yml` options through command line options and environment variables.
+
+To configure with command line options, you can specify values with the `--config=KEY:VALUE` option. So to set the port to 8080, you could specify `--config=port:8080`.
+Multiple `--config` options can be used to configure as many values as you want.
+
+To configure with environment variables, you must create variables beginning with `TW_CONF_`, followed by the config key name. So to set the port to 8080 using environment variables, you can have a variable with the following value:
+`TW_CONF_port=8080`. These variables are case-sensitive, so keep that in mind when configuring with them.
+
+The priority for `twine.yml` configurations is as follows: command line options > environment variables > `twine.yml` file.
+
 ## Enabling SSL
 To enable SSL/HTTPS on your server, you'll need a JKS formatted keystore and a few adjustments to your `twine.yml` file. To generate a JKS keystore, you will need a valid certificate from an organization like LetsEncrypt. Once you have a certificate file, you'll need to package it into a `.jks` keystore with either Java's Keytool, or Keytool-Explorer (a GUI for keytool).
 Once you've got a JKS format keystore, all you'll need to do is point your `keystore` field in `twine.yml` to the path of your JKS keystore, and set `keystorePassword` to the keystore's password.
