@@ -16,7 +16,7 @@ Maven dependency:
 
 Gradle dependency:
 ```groovy
-implementation 'net.termer:twine:1.5a'
+implementation 'net.termer.twine:twine:1.5a'
 ```
 
 Once you've included it, create a new class called `Module` that implements the interface [TwineModule](https://termer.net/javadoc/twine/1.5/net/termer/twine/modules/TwineModule.html).
