@@ -108,17 +108,17 @@ configurations.all {
 
 dependencies {
 	// Vert.x dependencies
-	implementation 'io.vertx:vertx-core:3.9.1'
-	implementation 'io.vertx:vertx-web:3.9.1'
-	implementation 'io.vertx:vertx-sql-common:3.9.1'
-	implementation 'io.vertx:vertx-jdbc-client:3.9.1'
-	implementation 'io.vertx:vertx-zookeeper:3.9.1'
-	implementation "io.vertx:vertx-lang-kotlin:3.9.1"
-	implementation "io.vertx:vertx-lang-kotlin-coroutines:3.9.1"
+	api 'io.vertx:vertx-core:3.9.1'
+	api 'io.vertx:vertx-web:3.9.1'
+	api 'io.vertx:vertx-sql-common:3.9.1'
+	api 'io.vertx:vertx-jdbc-client:3.9.1'
+	api 'io.vertx:vertx-zookeeper:3.9.1'
+	api "io.vertx:vertx-lang-kotlin:3.9.1"
+	api "io.vertx:vertx-lang-kotlin-coroutines:3.9.1"
 	
 	// Kotlin dependencies
-	implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.3.72'
-	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.6'
+	api 'org.jetbrains.kotlin:kotlin-stdlib:1.3.72'
+	api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.6'
 	
 	// Misc. dependencies
 	implementation group: 'com.mashape.unirest', name: 'unirest-java', version: '1.4.9'
@@ -128,11 +128,11 @@ dependencies {
 	implementation group: 'org.json', name: 'json', version: '20190722'
 	
 	// SLF4J dependencies
-	implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
-	implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
+	api group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+	api group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
 	
 	// Database dependencies
-	implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.12'
-	implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.20'
-	implementation group: 'com.zaxxer', name: 'HikariCP', version: '3.4.5'
+	api group: 'org.postgresql', name: 'postgresql', version: '42.2.12'
+	api group: 'mysql', name: 'mysql-connector-java', version: '8.0.20'
+	api group: 'com.zaxxer', name: 'HikariCP', version: '3.4.5'
 }
