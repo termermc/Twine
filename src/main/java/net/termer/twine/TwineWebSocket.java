@@ -16,17 +16,15 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
  */
 public class TwineWebsocket {
 	private Vertx _vertx = null;
-	private int _maxBytes = -1;
-	private SockJSBridgeOptions _bridge = new SockJSBridgeOptions();
-	private SockJSHandlerOptions _sjsOps = new SockJSHandlerOptions();
-	private ArrayList<PermittedOptions> _inbound = new ArrayList<PermittedOptions>();
-	private ArrayList<PermittedOptions> _outbound = new ArrayList<PermittedOptions>();
+	private final SockJSBridgeOptions _bridge = new SockJSBridgeOptions();
+	private final SockJSHandlerOptions _sjsOps = new SockJSHandlerOptions();
+	private final ArrayList<PermittedOptions> _inbound = new ArrayList<>();
+	private final ArrayList<PermittedOptions> _outbound = new ArrayList<>();
 	
 	public TwineWebsocket(Vertx vertx, int maxBytesStreaming) {
 		_vertx = vertx;
-		_maxBytes = maxBytesStreaming;
-		
-		_sjsOps.setMaxBytesStreaming(_maxBytes);
+
+		_sjsOps.setMaxBytesStreaming(maxBytesStreaming);
 	}
 	
 	/**
@@ -111,8 +109,9 @@ public class TwineWebsocket {
 	 * @since 1.0-alpha
 	 */
 	protected Router build() {
-		_bridge.setInboundPermitted(_inbound);
-		_bridge.setOutboundPermitted(_outbound);
+		_bridge.setInboundPermitteds(_inbound);
+		_bridge.setOutboundPermitteds(_outbound);
+
 		return SockJSHandler
 					.create(_vertx, _sjsOps)
 					.bridge(_bridge);
