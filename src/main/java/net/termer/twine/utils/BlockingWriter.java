@@ -11,7 +11,7 @@ import java.io.PrintWriter;
  * @author termer
  * @since 1.0-alpha
  */
-public class Writer {
+public class BlockingWriter {
 	/**
 	 * Writes the provided String to the specified file
 	 * @param path the path to the file
