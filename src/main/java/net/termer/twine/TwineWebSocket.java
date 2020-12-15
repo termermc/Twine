@@ -14,14 +14,14 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
  * @author termer
  * @since 1.0-alpha
  */
-public class TwineWebsocket {
+public class TwineWebSocket {
 	private Vertx _vertx = null;
 	private final SockJSBridgeOptions _bridge = new SockJSBridgeOptions();
 	private final SockJSHandlerOptions _sjsOps = new SockJSHandlerOptions();
 	private final ArrayList<PermittedOptions> _inbound = new ArrayList<>();
 	private final ArrayList<PermittedOptions> _outbound = new ArrayList<>();
 	
-	public TwineWebsocket(Vertx vertx, int maxBytesStreaming) {
+	public TwineWebSocket(Vertx vertx, int maxBytesStreaming) {
 		_vertx = vertx;
 
 		_sjsOps.setMaxBytesStreaming(maxBytesStreaming);
@@ -50,7 +50,7 @@ public class TwineWebsocket {
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
 	 */
-	public TwineWebsocket inbound(String channel) {
+	public TwineWebSocket inbound(String channel) {
 		_inbound.add(new PermittedOptions().setAddress(channel));
 		return this;
 	}
@@ -60,7 +60,7 @@ public class TwineWebsocket {
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
 	 */
-	public TwineWebsocket outbound(String channel) {
+	public TwineWebSocket outbound(String channel) {
 		_outbound.add(new PermittedOptions().setAddress(channel));
 		return this;
 	}
@@ -70,7 +70,7 @@ public class TwineWebsocket {
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
 	 */
-	public TwineWebsocket inboundRegex(String channelRegex) {
+	public TwineWebSocket inboundRegex(String channelRegex) {
 		_inbound.add(new PermittedOptions().setAddressRegex(channelRegex));
 		return this;
 	}
@@ -80,7 +80,7 @@ public class TwineWebsocket {
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
 	 */
-	public TwineWebsocket outboundRegex(String channelRegex) {
+	public TwineWebSocket outboundRegex(String channelRegex) {
 		_outbound.add(new PermittedOptions().setAddressRegex(channelRegex));
 		return this;
 	}
@@ -89,7 +89,7 @@ public class TwineWebsocket {
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
 	 */
-	public TwineWebsocket clearInbound() {
+	public TwineWebSocket clearInbound() {
 		_inbound.clear();
 		return this;
 	}
@@ -98,7 +98,7 @@ public class TwineWebsocket {
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
 	 */
-	public TwineWebsocket clearOutbound() {
+	public TwineWebSocket clearOutbound() {
 		_outbound.clear();
 		return this;
 	}
