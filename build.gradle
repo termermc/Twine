@@ -132,3 +132,6 @@ dependencies {
 	api 'io.vertx:vertx-pg-client:4.0.0'
 	api 'io.vertx:vertx-mysql-client:4.0.0'
 }
+
+// Execute shadowJar when running build
+tasks.build.dependsOn tasks.shadowJar
