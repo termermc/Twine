@@ -28,6 +28,7 @@ There is a huge amount of breaking changes from both Twine and Vert.x to take ca
 Code Changes
  - Upgraded Vert.x to new major version 4.0.0
  - Removed all "handler", "get", "post", etc methods from ServerManager in favor of using "router", a reference to Vert.x Web's Router
+ - Added method "sessionStore" in ServerManager
  - Renamed Writer to BlockingWriter
  - Renamed TwineWebsocket to TwineWebSocket (for consistency with Vert.x 4's naming convention)
  - Removed Beanshell scripting, and all of TES
