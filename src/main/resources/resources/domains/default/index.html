@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title>Welcome to Twine</title>
+		<link rel="icon" href="logo.png" type="image/png">
 		<style>
 			body {
 				margin: 0px;
@@ -51,23 +52,21 @@
 			<h1>Welcome to Twine!</h1>
 			<img src="logo.png"/>
 			<p>
-				Currently, you have not set up any domains, so this page has been served.<br/>
-				If this server is accessed from a domain that has no defined directory or alias,
-				it will serve from <code>./domains/default/</code>, so be sure to change this page for future use!<br/>
+				Currently, you have not set up any domains, so this page has been served.<br>
+				If this server is accessed from a domain that has no defined root directory or alias,
+				it will serve from <code>./domains/default/</code>, so be sure to change this page for future use!<br>
 			</p>
-			<br/>
+			<br>
 			<h2>Configuring Twine</h2>
 			<p>
-				As you may have noticed, Twine has generated a few configuration files.
-				One among these, <code>twine.yml</code>, plays a large role in how your server
-				behaves, so it's best to configure it before going into production.<br/>
-				Specifically, you should take a look at <code>ip</code> and <code>port</code>.
-				<code>ip</code> and <code>port</code> should be pretty self-explanatory; they
-				determine the IP/address and port to which the
-				server should bind. To configure domains, take a look at <code>domains.yml</code>
-				to get an example on how it works.
+				Configuration of Twine can be done by editing <code>twine.yml</code>.
+				<br><br>
+				The most basic thing to configure is changing the server's <code>ip</code> and <code>port</code> in the <code>server</code> block.
+				<br>
+				Many other configuration options including virtualhost domains are available in that file.
+				All options are explained within the file itself, so to get started, just open the file in a text editor and read over it.
 			</p>
-			<br/>
+			<br>
 			<h2>More Info</h2>
 			<p>
 				To get more info on Twine, and to view its source code, head over to its

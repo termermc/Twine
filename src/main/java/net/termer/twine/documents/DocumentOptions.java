@@ -1,10 +1,9 @@
 package net.termer.twine.documents;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.ext.web.RoutingContext;
-import net.termer.twine.utils.Domains.Domain;
+import net.termer.twine.domains.Domain;
 
 /**
  * Utility class to manipulate a document or how it's treated
@@ -16,27 +15,30 @@ public class DocumentOptions {
 	private DocumentProcessor[] _procs;
 	private Domain _domain;
 	private String _name;
+	private String _extension;
 	private String _content;
 	private int _procIndex = 0;
-	private Handler<AsyncResult<DocumentOptions>> _handler = null;
-	
+	private Promise<DocumentOptions> _promise = null;
+
 	/**
 	 * Instantiates a new DocumentOptions object
 	 * @param content The content of the document being processed
 	 * @param name The name of the document being processed
+	 * @param extension The extension of the document being processed
 	 * @param domain The domain of the document being processed
 	 * @param processors The processors to execute on this document
 	 * @param route The RoutingContext object for processors to use
-	 * @since 1.0
+	 * @since 2.0
 	 */
-	protected DocumentOptions(String content, String name, Domain domain, DocumentProcessor[] processors, RoutingContext route) {
+	protected DocumentOptions(String content, String name, String extension, Domain domain, DocumentProcessor[] processors, RoutingContext route) {
 		_content = content;
 		_name = name;
+		_extension = extension.toLowerCase();
 		_domain = domain;
 		_procs = processors;
 		_route = route;
 	}
-	
+
 	/**
 	 * Assigns new DocumentProcessors
 	 * @param procs The new DocumentProcessors
@@ -47,7 +49,7 @@ public class DocumentOptions {
 		_procs = procs;
 		return this;
 	}
-	
+
 	/**
 	 * Returns the RoutingContext for the request that requested this document
 	 * @return The request's RoutingContext object
@@ -56,7 +58,7 @@ public class DocumentOptions {
 	public RoutingContext route() {
 		return _route;
 	}
-	
+
 	/**
 	 * Return's the document's content
 	 * @return The document's content
@@ -75,7 +77,7 @@ public class DocumentOptions {
 		_content = content;
 		return this;
 	}
-	
+
 	/**
 	 * Returns the name (usually filename) of the document
 	 * @return The name of the document
@@ -94,7 +96,27 @@ public class DocumentOptions {
 		_name = name;
 		return this;
 	}
-	
+
+	/**
+	 * Returns the extension of the document.
+	 * This does not necessarily need to match up with the extension found in name().
+	 * @return The extension of the document
+	 * @since 2.0
+	 */
+	public String extension() {
+		return _extension;
+	}
+	/**
+	 * Sets the extension returned by extension(). Does not actually change the extension of the document being processed on disk.
+	 * @param extension The new extension of the document
+	 * @return This, to be used fluently
+	 * @since 2.0
+	 */
+	public DocumentOptions extension(String extension) {
+		_extension = extension;
+		return this;
+	}
+
 	/**
 	 * Returns the domain which this document is being served from
 	 * @return This document's domain
@@ -113,7 +135,7 @@ public class DocumentOptions {
 		_domain = domain;
 		return this;
 	}
-	
+
 	/**
 	 * Replaces all instances of the provided instance String with the provided replacement String
 	 * @param instance The instance String to replace
@@ -136,19 +158,21 @@ public class DocumentOptions {
 		_content = _content.replaceAll(instance, replacement);
 		return this;
 	}
-	
+
 	/**
 	 * Executes all processors and then returns the finished DocumentOptions object
-	 * @param handler The handler to receive the finished document
+	 * @return A Future that returns this DocumentProcessor when processors have finished, ended, or returned an error
 	 * @since 1.0
 	 */
-	public void execute(Handler<AsyncResult<DocumentOptions>> handler) {
-		_handler = handler;
-		_procIndex = 0;
-		if(_procs.length > 0)
-			_procs[0].process(this);
-		else
-			handler.handle(Future.succeededFuture(this));
+	protected Future<DocumentOptions> execute() {
+		return Future.future(promise -> {
+			_promise = promise;
+			_procIndex = 0;
+			if(_procs.length > 0)
+				_procs[0].process(this);
+			else
+				promise.complete(this);
+		});
 	}
 	/**
 	 * Executes the next DocumentProcessor, or finishes if there is none
@@ -159,15 +183,17 @@ public class DocumentOptions {
 		if(_procIndex < _procs.length)
 			_procs[_procIndex].process(this);
 		else
-			_handler.handle(Future.succeededFuture(this));
+			_promise.complete(this);
 	}
 	/**
-	 * Ends all processors and finishes the result
+	 * Ends all processors and finishes the result.
+	 * Unless a processor absolutely needs to be the last to process a document, it is recommended to call next().
+	 * Calling next allows other processors to run after this, or ends if there are no more left.
 	 * @since 1.0
 	 */
 	public void end() {
 		_procIndex = _procs.length;
-		_handler.handle(Future.succeededFuture(this));
+		_promise.complete(this);
 	}
 	/**
 	 * Ends all processors with an error
@@ -176,6 +202,6 @@ public class DocumentOptions {
 	 */
 	public void fail(Throwable error) {
 		_procIndex = _procs.length;
-		_handler.handle(Future.failedFuture(error));
+		_promise.fail(error);
 	}
 }

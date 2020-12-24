@@ -8,7 +8,7 @@ public class PrimitiveUtils {
     /**
      * Checks if the provided String represents a boolean
      * @param str the String to check
-     * @return whether the String represents a boolean
+     * @return Whether the String represents a boolean
      * @since 1.5
      */
     public static boolean isBoolean(String str) {
@@ -18,7 +18,7 @@ public class PrimitiveUtils {
     /**
      * Checks if the provided String represents a byte
      * @param str the String to check
-     * @return whether the String represents a byte
+     * @return Whether the String represents a byte
      * @since 1.5
      */
     public static boolean isByte(String str) {
@@ -33,7 +33,7 @@ public class PrimitiveUtils {
     /**
      * Checks if the provided String represents a short
      * @param str the String to check
-     * @return whether the String represents a short
+     * @return Whether the String represents a short
      * @since 1.5
      */
     public static boolean isShort(String str) {
@@ -48,7 +48,7 @@ public class PrimitiveUtils {
     /**
      * Checks if the provided String represents an int
      * @param str the String to check
-     * @return whether the String represents an int
+     * @return Whether the String represents an int
      * @since 1.5
      */
     public static boolean isInt(String str) {
@@ -63,7 +63,7 @@ public class PrimitiveUtils {
     /**
      * Checks if the provided String represents a long
      * @param str the String to check
-     * @return whether the String represents a long
+     * @return Whether the String represents a long
      * @since 1.5
      */
     public static boolean isLong(String str) {
@@ -78,7 +78,7 @@ public class PrimitiveUtils {
     /**
      * Checks if the provided String represents a float
      * @param str the String to check
-     * @return whether the String represents a float
+     * @return Whether the String represents a float
      * @since 1.5
      */
     public static boolean isFloat(String str) {
@@ -93,7 +93,7 @@ public class PrimitiveUtils {
     /**
      * Checks if the provided String represents a double
      * @param str the String to check
-     * @return whether the String represents a double
+     * @return Whether the String represents a double
      * @since 1.5
      */
     public static boolean isDouble(String str) {

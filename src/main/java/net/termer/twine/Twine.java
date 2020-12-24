@@ -1,16 +1,21 @@
 package net.termer.twine;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
 
+import io.vertx.core.http.HttpServerRequest;
+import net.termer.twine.documents.Documents;
+import net.termer.twine.domains.Domains;
+import net.termer.twine.exceptions.ConfigException;
 import net.termer.twine.utils.*;
+import net.termer.twine.utils.files.BlockingFileChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
 import net.termer.twine.Events.Type;
 import net.termer.twine.modules.ModuleManager;
@@ -24,16 +29,16 @@ public class Twine {
 	/**
 	 * The unique ID of this Twine instance.
 	 * This ID will be sent along with all Twine server events when publishing to the event bus.
+	 * @since 1.0-alpha
 	 */
 	public static final float INSTANCE_ID = new Random().nextInt(Integer.MAX_VALUE);
 	
 	// Instance variables
 	private static ArgParser _args;
-	private static String _verStr = "1.5";
-	private static int _verInt = 8;
-	private static Logger _logger = LoggerFactory.getLogger(Twine.class);
+	private static final String _verStr = "2.0";
+	private static final int _verInt = 9;
+	private static final Logger _logger = LoggerFactory.getLogger(Twine.class);
 	private static YamlConfig _conf = null;
-	private static YamlConfig _clusterConf = null;
 	private static Domains _domains = null;
 	private static boolean _firstConf = true;
 	
@@ -46,123 +51,142 @@ public class Twine {
 		
 		// Check options/flags
 		if(_args.option("help") || _args.flag('h')) {
-			// Fetch the jar path, and extract its name
-			String[] jarPath = Twine.class.getProtectionDomain().getCodeSource().getLocation().getFile().split("/");
-			String jar = jarPath[jarPath.length-1];
-			
-			System.out.println("java -jar twine-"+_verStr+".jar [OPTIONS]...");
-			System.out.println("\n"
-					+ "-s, --start             starts the server\n"
-					+ "-h, --help              prints this message\n"
-					+ "-v, --version           prints the version of the server\n"
-					+ "-m, --skip-modules      skips loading modules\n"
-					+ "-r, --recreate-configs  recreates all config files\n"
-					+ "--config=KEY:VALUE      overrides any value in twine.yml\n"
-					+ "--classpath-loaded      forces Twine to assume dependencies are loaded\n"
-					+ "\n"
-					+ "Examples:\n"
-					+ "  java -jar "+jar+" -rm  Starts the server while recreating all configs and with modules skipped\n"
-					+ "\n"
-					+ "For more info on Twine, along with its source code, you can visit its GitHub page: <https://github.com/termermc/twine>");
+            // Fetch the jar path, and extract its name
+            String[] jarPath = Twine.class.getProtectionDomain().getCodeSource().getLocation().getFile().split("/");
+            String jar = jarPath[jarPath.length - 1];
+
+            System.out.println("java -jar twine-" + _verStr + ".jar [OPTIONS]...");
+            System.out.println("\n"
+                    + "-s, --start             starts the server\n"
+                    + "-h, --help              prints this message\n"
+                    + "-v, --version           prints the version of the server\n"
+                    + "-m, --skip-modules      skips loading modules\n"
+                    + "-r, --recreate-config   recreates the main twine.yml\n"
+                    + "--config=NODE:VALUE      overrides any value in twine.yml\n"
+                    + "--classpath-loaded      forces Twine to assume dependencies are loaded\n"
+                    + "\n"
+                    + "Examples:\n"
+                    + "  java -jar " + jar + " -rm  Starts the server while recreating all configs and with modules skipped\n"
+                    + "\n"
+                    + "For more info on Twine, along with its source code, you can visit its GitHub page: <https://github.com/termermc/twine>");
+        } else if(_args.option("recreate-config") || _args.flag('r')) {
+            // Delete configs and recreate them
+            if (_args.flag('r') || _args.option("recreate-configs")) {
+                try {
+                    System.out.print("Recreating twine.yml...");
+
+                    // Rename current config to "twine.yml.old"
+                    File conf = new File("twine.yml");
+                    if(conf.exists() && !conf.renameTo(new File("twine.yml.old")))
+                        throw new IOException("Failed to rename twine.yml to twine.yml.old");
+
+                    // Create default
+                    BlockingFileChecker.createIfNotPresent(new String[] { "twine.yml" });
+
+                    // Finished
+                    System.out.println("Done");
+                    System.out.println("The previous config is available as \"twine.yml.old\" and can be safely deleted if you do not need it");
+                } catch(IOException e) {
+                    logger().error("Error occurred while trying to recreate config:");
+                    e.printStackTrace();
+                }
+            }
 		} else if(_args.option("version") || _args.flag('v')) {
+		    // Print Twine version
 			System.out.println("Twine version "+_verStr);
 		} else if(_args.option("start") || _args.flag('s')) {
 			// Check if restart need for proper classpath
 			if(_args.option("classpath-loaded")) {
 				// Check files and directories
 				logger().info("Initializing files...");
-				
-				// Delete configs if --recreate-configs is enabled
-				if(_args.flag('r') || _args.option("recreate-configs")) {
-					FileChecker.delete(new String[] {
-						"twine.yml",
-						"domains.yml",
-						"cluster.yml",
-						"configs/"
-					});
-				}
-				
-				// Create default files
-				FileChecker.createIfNotPresent("twine.yml", new String[] {
-					"domains/default/index.html",
-					"domains/default/404.html",
-					"domains/default/500.html",
-					"domains/default/logo.png",	
-				});
-				FileChecker.createIfNotPresent(new String[] {
-					"twine.yml",
-					"cluster.yml",
-					"domains.yml",
-					"access.log",
-					"configs/",
-					"static/",
-					"modules/",
-					"dependencies/"
-				});
-				
-				logger().info("Loading configs...");
-				_conf = new YamlConfig("twine.yml");
-				_clusterConf = new YamlConfig("cluster.yml");
+
 				try {
-					// Load all configurations (reloadConfigurations() is just load when it's first called)
-					reloadConfigurations();
-					
-					// Initialize server so components will be available for modules
-					ServerManager.init(r -> {
-						if(r.succeeded()) {
-							// Execute in worker thread
-							Thread worker = new Thread(() -> {
-								// Catch any further initialization errors
-								try {
-									// Load modules
-									ModuleManager.loadModules();
-									
-									// Execute pre-initialization methods if modules are enabled
-									if(!_args.flag('m') && !_args.option("skip-modules")) {
-										logger().info("Starting modules...");
-										ModuleManager.runModulePreInits();
-									}
-									
-									// Finish initialization
-									ServerManager.finishInit();
-									
-									// Execute initialization methods if modules are enabled
-									if(!_args.flag('m') && !_args.option("skip-modules")) {
-										ModuleManager.runModuleInits();
-									}
-									
-									// Start server
-									logger().info("Starting server...");
-									ServerManager.start(startRes -> {
-										if(startRes.succeeded()) {
-											Events.fire(Type.SERVER_START);
-
-											// Register shutdown hook
-											Thread sdHook = new Thread(Twine::_shutdown);
-											sdHook.setName("Twine-Shutdown");
-											Runtime.getRuntime().addShutdownHook(sdHook);
-
-											// Startup complete
-											logger().info("Startup complete.");
-										} else {
-											logger().error("Failed to start server:");
-											startRes.cause().printStackTrace();
-										}
-									});
-								} catch (IOException e) {
-									logger().error("Failed to start server:");
-									e.printStackTrace();
-								}
-							});
-							worker.setName("Twine");
-							worker.start();
-						} else {
-							logger().error("Failed to start server:");
-							r.cause().printStackTrace();
-						}
+					// Create default files
+					BlockingFileChecker.createIfNotPresent("twine.yml", new String[] {
+							"domains/default/index.html",
+							"domains/default/404.html",
+							"domains/default/500.html",
+							"domains/default/logo.png",
 					});
-				} catch (IOException e) {
-					logger().error("Failed to start server:");
+					BlockingFileChecker.createIfNotPresent(new String[] {
+							"twine.yml",
+							"access.log",
+							"configs/",
+							"static/",
+							"modules/",
+							"dependencies/"
+					});
+
+					logger().info("Loading configs...");
+					_conf = new YamlConfig("twine.yml");
+
+					try {
+						// Load all configurations (reloadConfigurations() is just load when it's first called)
+						reloadConfigurations();
+
+						// Initialize server so components will be available for modules
+						ServerManager.init().onComplete(r -> {
+							if (r.succeeded()) {
+								// Execute in worker thread
+								Thread worker = new Thread(() -> {
+									// Catch any further initialization errors
+									try {
+										// Load modules
+										ModuleManager.loadModules();
+
+										// Execute pre-initialization methods if modules are enabled
+										if (!_args.flag('m') && !_args.option("skip-modules")) {
+											logger().info("Starting modules...");
+											ModuleManager.runModulePreInits();
+										}
+
+										// Finish initialization
+										ServerManager.finishInit();
+
+										// Execute initialization methods if modules are enabled
+										if (!_args.flag('m') && !_args.option("skip-modules")) {
+											ModuleManager.runModuleInits();
+										}
+
+										// Start server
+										logger().info("Starting server...");
+										ServerManager.start().onComplete(startRes -> {
+											if (startRes.succeeded()) {
+												Events.fire(Type.SERVER_START);
+
+												// Register shutdown hook
+												Thread sdHook = new Thread(Twine::_shutdown);
+												sdHook.setName("Twine-Shutdown");
+												Runtime.getRuntime().addShutdownHook(sdHook);
+
+												// Startup complete
+												logger().info("Startup complete.");
+											} else {
+												logger().error("Failed to start server:");
+												startRes.cause().printStackTrace();
+											}
+										});
+									} catch (IOException e) {
+										logger().error("Failed to start server:");
+										e.printStackTrace();
+									}
+								});
+								worker.setName("Twine");
+								worker.start();
+							} else {
+								logger().error("Failed to start server:");
+								r.cause().printStackTrace();
+							}
+						});
+					} catch(IOException e) {
+						logger().error("Failed to start server:");
+						e.printStackTrace();
+					} catch(ConfigException e) {
+						logger().error("Failed to start server because of configuration error:");
+						logger().error(e.getPath()+": "+e.getMessage());
+					}
+				} catch(IOException e) {
+					logger().error("Failed to initialize file:");
 					e.printStackTrace();
 				}
 			} else {
@@ -170,14 +194,13 @@ public class Twine {
 				String jarPath = Twine.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 				
 				// Collect arguments
-				ArrayList<String> pArgs = new ArrayList<String>();
+				ArrayList<String> pArgs = new ArrayList<>();
 				pArgs.add("java");
 				pArgs.add("-classpath");
 				pArgs.add(jarPath+':'+"dependencies/*:modules/*");
 				pArgs.add(Twine.class.getName());
 				pArgs.add("--classpath-loaded");
-				for(String arg : args)
-					pArgs.add(arg);
+				Collections.addAll(pArgs, args);
 				
 				System.out.println("NOTICE: Creating new process using \"dependencies/\" and \"modules/\" in the classpath. To disable, start with --classpath-loaded.");
 				
@@ -203,33 +226,33 @@ public class Twine {
 	
 	/**
 	 * Reloads all server configuration files
-	 * @throws IOException if loading configuration files fail
+	 * @throws IOException If loading configuration files fail
+	 * @throws ConfigException If any configuration files have errors in them
 	 * @since 1.0-alpha
 	 */
 	@SuppressWarnings("unchecked")
-	public static void reloadConfigurations() throws IOException {
+	public static void reloadConfigurations() throws IOException, ConfigException {
 		boolean proceed = true;
 		if(ServerManager.vertx() != null)
 			proceed = Events.fire(Type.CONFIG_RELOAD);
 		
 		if(proceed) {
 			_conf.load();
-			_clusterConf.load();
 
 			// Modify config based on environment variables
 			for(String envKey : System.getenv().keySet()) {
 				if(envKey.startsWith("TW_CONF_")) {
-					String key = envKey.substring(8);
-					String val = System.getenv(envKey);
+					String node = envKey.substring(8);
+					String val = System.getenv(envKey).replace("_", ".");
 
 					if(PrimitiveUtils.isBoolean(val)) {
-						_conf.tempSet(key, Boolean.parseBoolean(val));
+						_conf.tempSetNode(node, Boolean.parseBoolean(val));
 					} else if(PrimitiveUtils.isInt(val)) {
-						_conf.tempSet(key, Integer.parseInt(val));
+						_conf.tempSetNode(node, Integer.parseInt(val));
 					} else if(PrimitiveUtils.isDouble(val)) {
-						_conf.tempSet(key, Double.parseDouble(val));
+						_conf.tempSetNode(node, Double.parseDouble(val));
 					} else {
-						_conf.tempSet(key, val);
+						_conf.tempSetNode(node, val);
 					}
 				}
 			}
@@ -238,31 +261,24 @@ public class Twine {
 			if(_args.option("config")) {
 				for(String op : _args.optionValues("config")) {
 					if (op.contains(":")) {
-						String key = op.substring(0, op.indexOf(':'));
+						String node = op.substring(0, op.indexOf(':'));
 						String val = op.substring(op.indexOf(':') + 1);
 
 						if(PrimitiveUtils.isBoolean(val)) {
-							_conf.tempSet(key, Boolean.parseBoolean(val));
+							_conf.tempSetNode(node, Boolean.parseBoolean(val));
 						} else if(PrimitiveUtils.isInt(val)) {
-							_conf.tempSet(key, Integer.parseInt(val));
+							_conf.tempSetNode(node, Integer.parseInt(val));
 						} else if(PrimitiveUtils.isDouble(val)) {
-							_conf.tempSet(key, Double.parseDouble(val));
+							_conf.tempSetNode(node, Double.parseDouble(val));
 						} else {
-							_conf.tempSet(key, val);
+							_conf.tempSetNode(node, val);
 						}
 					}
 				}
 			}
 			
-			// Parse domains.yml
-			Yaml yml = new Yaml();
-			ArrayList<Map<String, Object>> maps = new ArrayList<Map<String, Object>>(); 
-			for(Object obj : yml.loadAll(new FileInputStream("domains.yml"))) {
-				if(obj instanceof Map<?, ?>) {
-					maps.add((Map<String, Object>) obj);
-				}
-			}
-			_domains = new Domains(maps);
+			// Parse domains
+			_domains = new Domains((Map<String, Map<String, Object>>) _conf.getNode("server.domains"), (String) _conf.getNode("server.defaultDomain"));
 			
 			// Only run after first run
 			if(_firstConf) {
@@ -338,14 +354,6 @@ public class Twine {
 	 */
 	public static YamlConfig config() {
 		return _conf;
-	}
-	/**
-	 * Returns the contents of cluster.yml
-	 * @return The server cluster configuration file
-	 * @since 1.0-alpha
-	 */
-	public static YamlConfig clusterConfig() {
-		return _clusterConf;
 	}
 	/**
 	 * Returns the server's configured domains

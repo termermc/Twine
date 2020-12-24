@@ -1,75 +1,225 @@
-# IP/address to bind to
-ip: "0.0.0.0"
+# This is file that controls how Twine acts.
+# The format this configuration file is written in is YAML. For any questions on YAML, documentation can be found online.
+# The term "node" is used here as a string referencing a specified field value that can be nested.
+# An example of a node would be "server.port" which is a reference to the field "port" inside of "server".
+# Programmatic config changes can be done through command line arguments and environment variables, and override the contents of this file.
+# More information on such changes can be found in Twine's README.md file.
 
-# Port to run server on
-port: 8080
+# Settings relating to Twine itself.
+twine:
+    # Whether to load modules even if they specify an incompatible Twine version.
+    ignoreModuleCheck: false
 
-# Java Keystore path to use to enable HTTPS
-# Leave empty to ignore
-keystore: ""
 
-# Keystore password
-keystorePassword: "drowssap"
+# Settings specifically for Vert.x.
+vertx:
+    # The amount of worker threads to initialize Vert.x with.
+    # Worker threads are used for executing blocking code in modules.
+    workerPoolSize: 10
 
-# Enable HTTP logging
-httpLogging: true
+    # Vert.x clustering settings.
+    # Twine uses the Zookeeper cluster manager, so to use this, you need a Zookeeper server.
+    cluster:
+        # Whether to enable Vert.x clustering.
+        enable: false
 
-# The file to where requests are logged (if HTTP logging is enabled)
-httpLog: "access.log"
+        # List of Zookeeper cluster hosts
+        hosts: ["localhost", "example.com"]
 
-# Enable GZIP compression
-compression: false
+        # Connection timeout for cluster connections (milliseconds).
+        connectTimeout: 3000
 
-# Static path
-static: "static/"
+        # Session timeout for cluster connections (milliseconds).
+        sessionTimeout: 20000
 
-# The amount of worker threads to initialize Vert.x with
-# Worker threads are used for executing blocking code in modules.
-workerPoolSize: 10
+        # The initial time to sleep before attempting a reconnection to a clustered node (milliseconds).
+        retryInitialSleepTime: 100
 
-# Enable/disable embedded scripting
-scripting: false
+        # The time to sleep between connection retries (milliseconds).
+        retryIntervalTime: 10000
 
-# Whether to print embedded scripting exceptions as if they called out.append
-scriptExceptions: false
+        # The maximum amount of times to attempt a reconnection before giving up
+        retryMaxTimes: 5
 
-# Whether traffic should be redirected to an HTTPS version
-# Has no effect if there is no keystore
-httpsRedirect: false
 
-# Which port to run HTTPS redirector on
-httpsRedirectPort: 80
+# Settings relating to the HTTP server.
+server:
+    # Whether the HTTP server should run.
+    # If set to false, Twine will effectively be headless and only serve as a Vert.x container.
+    # Good option to disable if you're not using any modules that use the HTTP server and aren't serving any files/domains.
+    enable: true
 
-# Maximum HTTP request body size (bytes)
-maxBodySize: 10240
+    # IP/address to bind to.
+    ip: "0.0.0.0"
 
-# Whether to send caching headers for static content
-staticCaching: true
+    # Port to run server on.
+    port: 8080
 
-# Whether the server should provide a file browser for static resources
-staticBrowser: false
+    # Maximum HTTP request body size (bytes).
+    # This applies to all requests that are being handled by a handler wit the BodyHandler middleware behind it.
+    # To avoid this limit, register a handler in a module's preinitialize() method.
+    # This limit is imposed because in order to parse request bodies, BodyHandler needs to load entire request bodies into memory.
+    # Additionally, this method applies directly to Vert.x HttpServerRequest's uploadHandler(...) method.
+    maxBodySize: 10240
 
-# Whether to load modules even if they specify an incompatible Twine version
-ignoreModuleCheck: false
+    # Whether to enable GZIP compression for responses.
+    compression: true
 
-# Enable Vert.x sessions
-sessions: true
+    # Whether to enable Vert.x-Web sessions.
+    # This is required if you want to use sessions provided by Twine, and also needed if you want to share sessions between modules.
+    sessions: true
 
-# Whether to enable SockJS eventbus communication
-# Keep in mind that by default, no eventbus channels are exposed.
-# A module must use ServerManager.ws().outbound(<channel>)|inbount(<channel>) to manage exposed channels.
-wsEnable: false
+    # Whether to respect X-Forwarded-For headers on requests.
+    # This should be enabled when running Twine behind a reverse proxy such as Nginx.
+    # It will affect what is returned by RequestUtils.resolveIp().
+    respectXFF: false
 
-# The endpoint for SockJS clients to connect 
-wsEndpoint: "/eventbus/"
+    # Settings for HTTPS.
+    https:
+        # Whether to enable HTTPS
+        enable: false
 
-# Sets a minimum number of bytes that can be send over a single http streaming request before it will be closed
-# Default is 128k
-wsMaxBytesStreaming: 131072
+        # Java Keystore path to use to enable HTTPS.
+        # This should be a .JKS keystore file.
+        # Other formats will not work.
+        keystore: ""
 
-# Whether to enable Vert.x clustering (futher configuration must be done in the cluster.yml file)
-clusterEnable: false
+        # Keystore password.
+        keystorePassword: "drowssap"
 
-# Whether to disable creating an HTTP server
-# Good option to enable if you're not using modules that use the HTTP server and aren't serving any files/domains.
-disableHttp: false
+        # Redirection of traffic from HTTP to HTTPS via a small HTTP server
+        redirect:
+            # Whether to enable the HTTPS redirection server.
+            # This will have no effect if "server.https.enable" is false.
+            enable: true
+
+            # Which port to run HTTPS redirection server on.
+            # The server will use the same IP as the main HTTP server.
+            port: 80
+
+
+    # Request logging.
+    logging:
+        # Whether to enable HTTP logging.
+        enable: true
+
+        # The file to where requests are logged.
+        file: "access.log"
+
+
+    # Settings for serving static files.
+    static:
+        # The directory where static files are located.
+        # This is different from domains it is available regardless of a request's Host header.
+        directory: "static/"
+
+        # Whether the server should provide directory listings for static content.
+        # Do not enable this if you don't want your static files being publicly indexed.
+        enableListing: false
+
+        # Whether to send caching headers for static content.
+        caching: true
+
+        # The index page to use for static content.
+        # If no index page is present and server.static.enableListing is false, a 404 will be encountered.
+        indexPage: "index.html"
+
+        # Whether to enable support for ranged requests.
+        # This is required for seeking in video and audio files, as well as allowing download resuming.
+        enableRangeSupport: true
+
+        # Whether to serve hidden files.
+        includeHidden: true
+
+
+    # Settings for bridging the Vert.x EventBus over WebSocket using SockJS
+    websocket:
+        # Whether to enable bridging the Vert.x EventBus over WebSocket.
+        # This on its own will not do anything, but is required in order to use any methods in Twine.ws().
+        # It's worth noting that enabling this will not leak EventBus data by default, bridged EventBus channels have to be whitelisted by modules.
+        enable: false
+
+        # The endpoint for SockJS clients to connect.
+        endpoint: "/eventbus/"
+
+        # Sets the minimum number of bytes that can be sent over a single HTTP streaming request before it will be closed.
+        # Default is 128 kilobytes.
+        maxBytesStreaming: 131072
+
+
+    # Virtualhost domains and settings for how to serve files on them.
+    # Entries in this field are user-defined, with the keys inside being domain aliases.
+    # For example, a field named "example" will be an alias named "example".
+    domains:
+        # This is a domain with the alias "default".
+        # Alias names don't affect Twine's operation, but they are useful names to be referenced by Modules.
+        default:
+            # The hostname that this domain will be serving.
+            hostname: "localhost"
+
+            # The filesystem root for this domain (where the files will be served from).
+            root: "domains/default/"
+
+            # The name of the file to serve for the root of this domain.
+            # This file should be found in the domain root directory.
+            index: "index.html"
+
+            # The file to be served when a file cannot be found for the request path.
+            # This file should be found in the domain root directory.
+            notFound: "404.html"
+
+            # The file to be served when an error occurs on this domain.
+            # This file should be found in the domain root directory.
+            serverError: "500.html"
+
+
+        # Another domain entry.
+        myDomain:
+            # The hostnames that this domain will be serving.
+            # Using "hostnames" rather than "hostname" will allow you to serve multiple hostnames for a single domain entry.
+            hostnames: ["example.com", "www.example.com"]
+
+            # The filesystem root for this domain (where the files will be served from).
+            root: "domains/example/"
+
+            # The name of the file to serve for the root of this domain.
+            # This file should be found in the domain root directory.
+            index: "index.html"
+
+            # The file to be served when a file cannot be found for the request path.
+            # This file should be found in the domain root directory.
+            notFound: "404.html"
+
+            # The file to be served when an error occurs on this domain.
+            # This file should be found in the domain root directory.
+            serverError: "500.html"
+
+            # Whether to ignore 404 errors and return 200 even if a resource isn't found.
+            # This is useful in conjunction with "notFound" because it can be used for SPA systems, and other things that require the same page to be served on all routes.
+            ignore404: true
+
+            # Optional settings for configuring CORS headers.
+            # More information CORS can be found on MDN: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS.
+            # Every field here is optional except for "enable".
+            cors:
+                # Whether CORS headers should be sent on this domain at all.
+                enable: true
+
+                # What origins to allow for requests to this domain.
+                # This field defines what will be sent in the "Access-Control-Allow-Origin" header in responses.
+                # This can either be a valid origin like "https://example.com", an asterisk ("*") for all origins, or "request-origin", which is a Twine-provided value.
+                # Using "request-origin" will cause the header to be whatever the request's "Origin" header is, or "*" if none is sent.
+                allowOrigin: "https://example.com"
+
+                # The HTTP request methods to allow on this domain.
+                allowMethods: ["GET", "POST", "OPTIONS"]
+
+                # Which headers to allow in AJAX/XHR requests to this domain.
+                allowHeaders: ["Content-Type", "Content-Length", "X-MYHEADER"]
+
+                # Whether to allow sending of cookies and other credentials in AJAX/XHR requests to this domain.
+                allowCredentials: false
+
+
+    # The default domain to be served if a request's Host header doesn't match any defined domains
+    defaultDomain: "default"

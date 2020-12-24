@@ -19,7 +19,7 @@ public class Events {
 	 * @author termer
 	 * @since 1.0-alpha
 	 */
-	public static enum Type {
+	public enum Type {
 		/**
 		 * Event fired when the server's configuration files are being reloaded.
 		 * This event can be cancelled.
@@ -64,8 +64,8 @@ public class Events {
 		CLUSTER_JOIN
 	}
 	
-	private static HashMap<Type, ArrayList<TwineEvent>> _events = new HashMap<Type, ArrayList<TwineEvent>>();
-	private static HashMap<Type, ArrayList<TwineEvent>> _async = new HashMap<Type, ArrayList<TwineEvent>>();
+	private static final HashMap<Type, ArrayList<TwineEvent>> _events = new HashMap<>();
+	private static final HashMap<Type, ArrayList<TwineEvent>> _async = new HashMap<>();
 	
 	/**
 	 * Registers a blocking event callback.
@@ -78,7 +78,7 @@ public class Events {
 	 * @since 1.0-alpha
 	 */
 	public static void on(Type type, TwineEvent callback) {
-		if(!_events.containsKey(type)) _events.put(type, new ArrayList<TwineEvent>());
+		if(!_events.containsKey(type)) _events.put(type, new ArrayList<>());
 		_events.get(type).add(callback);
 	}
 	/**
@@ -89,7 +89,7 @@ public class Events {
 	 * @since 1.0-alpha
 	 */
 	public static void onAsync(Type type, TwineEvent callback) {
-		if(!_async.containsKey(type)) _async.put(type, new ArrayList<TwineEvent>());
+		if(!_async.containsKey(type)) _async.put(type, new ArrayList<>());
 		_async.get(type).add(callback);
 	}
 	
@@ -101,8 +101,8 @@ public class Events {
 	 */
 	public static boolean fire(Type type) {
 		// Avoid NullPointerException
-		if(!_events.containsKey(type)) _events.put(type, new ArrayList<TwineEvent>());
-		if(!_async.containsKey(type)) _async.put(type, new ArrayList<TwineEvent>());
+		if(!_events.containsKey(type)) _events.put(type, new ArrayList<>());
+		if(!_async.containsKey(type)) _async.put(type, new ArrayList<>());
 		
 		// Publish event to event bus
 		vertx().eventBus().publish(

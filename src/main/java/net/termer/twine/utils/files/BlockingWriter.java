@@ -1,4 +1,4 @@
-package net.termer.twine.utils;
+package net.termer.twine.utils.files;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -7,9 +7,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * Utility class for writing to files
+ * Utility class for writing to files in a blocking fashion
  * @author termer
- * @since 1.0-alpha
+ * @since 2.0
  */
 public class BlockingWriter {
 	/**
@@ -17,7 +17,7 @@ public class BlockingWriter {
 	 * @param path the path to the file
 	 * @param content the content to write
 	 * @throws IOException whether writing to the file fails 
-	 * @since 1.0-alpha
+	 * @since 2.0
 	 */
 	public static void write(String path, String content) throws IOException {
 		FileOutputStream fos = new FileOutputStream(path);
@@ -30,7 +30,7 @@ public class BlockingWriter {
 	 * @param path the path to the file
 	 * @param content the content to append
 	 * @throws IOException if appending to the file fails
-	 * @since 1.0-alpha
+	 * @since 2.0
 	 */
 	public static void append(String path, String content) throws IOException {
 		FileWriter fw = new FileWriter(path, true);

@@ -11,7 +11,7 @@ public interface TwineModule {
 	 * @author termer
 	 * @since 1.0-alpha
 	 */
-	public static enum Priority {
+	enum Priority {
 		HIGH,
 		MEDIUM,
 		LOW
@@ -22,13 +22,13 @@ public interface TwineModule {
 	 * @return the name of the module
 	 * @since 1.0-alpha
 	 */
-	public String name();
+	String name();
 	/**
 	 * The priority at which this module should be loaded
 	 * @return this module's load priority
 	 * @since 1.0-alpha
 	 */
-	public Priority priority();
+	Priority priority();
 	/**
 	 * The version of Twine for which this module was designed.
 	 * End it with a "+" to signify that any version after the provided version may be used.
@@ -36,18 +36,18 @@ public interface TwineModule {
 	 * @return the version of Twine for which this module was designed
 	 * @since 1.0-alpha
 	 */
-	public String twineVersion();
+	String twineVersion();
 	
 	/**
 	 * The method called when the module is loaded
 	 * @since 1.0-alpha
 	 */
-	public void initialize();
+	void initialize();
 	/**
 	 * The method called when the module is shut down
 	 * @since 1.0-alpha
 	 */
-	public void shutdown();
+	void shutdown();
 	
 	/**
 	 * The method called before any handlers are registered by Twine.
@@ -55,5 +55,5 @@ public interface TwineModule {
 	 * Appropriate for upload handlers, and other types of handlers that need to stream request body content.
 	 * @since 1.3
 	 */
-	public void preinitialize();
+	void preinitialize();
 }

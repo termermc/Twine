@@ -16,3 +16,59 @@ Changes
  - Fixed very poor threading in Events class
  - Fixed issues in Javadoc
  - Fixed occasional failures to write error document
+
+=== Version 2.0 ===
+Breaking changes: Yes
+New Feature(s): Yes
+Bugfixes: Yes
+
+This release switches to a new major version of Vert.x, 4.0.0.
+There is a huge amount of breaking changes from both Twine and Vert.x to take care of in modules for that reason.
+
+Code Changes
+ - Upgraded Vert.x to new major version 4.0.0
+ - Removed all "handler", "get", "post", etc methods from ServerManager in favor of using "router", a reference to Vert.x Web's Router
+ - Renamed Writer to BlockingWriter
+ - Renamed TwineWebsocket to TwineWebSocket (for consistency with Vert.x 4's naming convention)
+ - Removed Beanshell scripting, and all of TES
+ - Removed blocking document processors
+ - Added method "extension" on DocumentOptions
+ - Changed "pathToFile" in RequestUtils to "possibleFilePaths"
+ - Added methods "resolveFileByPath" and "resolveIp" in RequestUtils
+ - Renamed "validExtension" in Documents to "isValidExtension"
+ - Renamed "processor" in Documents to "registerProcessor"
+ - Added Document.extensions() to return registered Document extensions
+ - Renamed class Callback to CallbackChain, and changed its methods slightly
+ - Moved Domains to its own package, net.termer.twine.domains
+ - Moved class Domains.Domain to its own class named Domain in net.termer.twine.domains package
+ - Removed method "domain" in Domain
+ - Added methods "hostnames" and "cors" in Domain
+ - Renamed method "byDomain" in Domains to "byHostname"
+ - Added methods "all", "byHostnameOrDefault", "byHostHeader", "byHostHeaderOrDefault" and "byNameOrDefault" in Domains
+ - Removed method "same" in StringFilter
+ - Added overloaded versions of methods "filter", "acceptableString", and "generateString" in StringFilter
+ - Renamed property "acceptableChars" in StringFilter to "defaultAcceptableChars"
+ - Added escaping for single quote in StringFilter.escapeHTML
+ - Added ConfigException for errors relating to config files
+ - Changed instantiation of class Domains to throw ConfigException
+ - Changed method "reloadConfigurations" in Twine to throw ConfigException
+ - Added methods "getNode", "tempSetNode", "hasNode", "loaded" and "path" in YamlConfig
+ - Removed method "clusterConfig" from Twine
+ - Many small bug fixes
+
+Config Changes
+ - All configuration files have been merged into twine.yml
+ - twine.yml's structure has been entirely reworked, and old configs will need to be converted
+ - Removed "scripting" and "scriptExceptions" options in twine.yml because TES scripting has been removed
+ - Added more fine grained control over domain settings
+
+Dependency Changes
+ - Removed Beanshell
+ - Removed Vert.x SQL Common
+ - Removed Vert.x JDBC Connector
+ - Removed PostgreSQL and MySQL connectors
+ - Added Vert.x Reactive PostgreSQL and MySQL clients
+
+Misc. Changes
+ - Added support for JSON bodies being parsed into form attributes and params
+ - Changed option "--recreate-configs" to "--recreate-config", flag "-r" is unchanged

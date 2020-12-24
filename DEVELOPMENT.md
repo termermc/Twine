@@ -9,22 +9,22 @@ Maven dependency:
 <dependency>
   <groupId>net.termer.twine</groupId>
   <artifactId>twine</artifactId>
-  <version>1.5b</version>
+  <version>2.0</version>
   <type>module</type>
 </dependency>
 ```
 
 Gradle dependency:
 ```groovy
-implementation 'net.termer.twine:twine:1.5b'
+implementation 'net.termer.twine:twine:2.0'
 ```
 
-Once you've included it, create a new class called `Module` that implements the interface [TwineModule](https://termer.net/javadoc/twine/1.5/net/termer/twine/modules/TwineModule.html).
+Once you've included it, create a new class called `Module` that implements the interface [TwineModule](https://termer.net/javadoc/twine/2.0/net/termer/twine/modules/TwineModule.html).
 
 
 
 ## Javadoc
-The Twine Javadoc for module development is located [here](https://termer.net/javadoc/twine/1.5).
+The Twine Javadoc for module development is located [here](https://termer.net/javadoc/twine/2.0/index.html).
 
 ## TwineModule Interface
 The methods that are defined in `TwineModule` are as follows:
@@ -34,6 +34,9 @@ The methods that are defined in `TwineModule` are as follows:
 `priority` - The priority that this module should be loaded in. `LOW` will be loaded last and shutdown first, `HIGH` will be loaded first and shutdown last. `MEDIUM` is in between.
 
 `twineVersion` - The version of Twine this module was built for. It's a String that's meant to describe the name. For example, `1.0`, `1.0-alpha`, or `1.0-beta`. You can also append `+` to the end of the String to denote that it may be used on any version after the specified version as well as the specified version.
+
+`preinitialize` - The method that is called when a module is loaded, but before all Twine middleware are registered.
+This method should house code that requires a lack of middleware, such as for an upload route that does not want a BodyParser to read the request body first. 
 
 `initialize` - The method that is called when the module is started.
 
@@ -56,7 +59,9 @@ public class Module implements TwineModule {
 		Domain defaultDomain = Twine.domains().byName("default");
 		
 		// Register route
-		ServerManager.get(defaultDomain.domain(), "/hello/:name", route -> {
+        router().get("/hello/:name")
+                .virtualHost(defaultDomain.domain())
+                .handler(route -> {
 			// Get name from path parameter
 			String name = route.pathParam("name");
 			
@@ -78,7 +83,7 @@ public class Module implements TwineModule {
 	}
 
 	public String twineVersion() {
-		return "1.5+";
+		return "2.0+";
 	}
 }
 ``` 
@@ -88,3 +93,4 @@ For more info on the Vert.x API, check out the [Vert.x](https://vertx.io/docs/ve
 ## Deploying Your Module
 To deploy your module, compile it, place it in Twine's `modules/` directory, and place its dependency jars in the `dependencies/` directory.
 When you start Twine it will load and run the module.
+Additionally, if you have multiple modules that use the same dependencies, it is recommended that you use jars with shaded dependencies to avoid conflicts.

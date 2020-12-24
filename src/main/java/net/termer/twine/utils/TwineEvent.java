@@ -6,7 +6,7 @@ package net.termer.twine.utils;
  * @since 1.0-alpha
  */
 public interface TwineEvent {
-	public void callback(Options options);
+	void callback(Options options);
 	
 	/**
 	 * Utility class to manipulate events.
@@ -14,7 +14,7 @@ public interface TwineEvent {
 	 * @author termer
 	 * @since 1.0-alpha
 	 */
-	public static class Options {
+	class Options {
 		private boolean _cancelled = false;
 		
 		/**

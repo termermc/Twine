@@ -7,6 +7,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -16,14 +17,16 @@ import net.termer.twine.Events;
 import net.termer.twine.Twine;
 import net.termer.twine.modules.TwineModule.Priority;
 
+import static net.termer.twine.Twine.config;
+
 /**
  * utility class to load and interact with modules
  * @author termer
  * @since 1.0-alpha
  */
 public class ModuleManager {
-	private static ArrayList<TwineModule> _modules = new ArrayList<TwineModule>();
-	private static HashMap<Priority, CopyOnWriteArrayList<TwineModule>> _priorities = new HashMap<Priority, CopyOnWriteArrayList<TwineModule>>();
+	private static final ArrayList<TwineModule> _modules = new ArrayList<>();
+	private static final HashMap<Priority, CopyOnWriteArrayList<TwineModule>> _priorities = new HashMap<>();
 	
 	/**
 	 * Loads all modules and dependencies
@@ -31,12 +34,12 @@ public class ModuleManager {
 	 * @since 1.0-alpha
 	 */
 	public static void loadModules() throws IOException {
-		ArrayList<URL> urls = new ArrayList<URL>();
+		ArrayList<URL> urls = new ArrayList<>();
 		
 		// Begin loading module launch classes
-		ArrayList<String> launchClasses = new ArrayList<String>();
+		ArrayList<String> launchClasses = new ArrayList<>();
 		
-		for(File jar : new File("modules/").listFiles()) {
+		for(File jar : Objects.requireNonNull(new File("modules/").listFiles())) {
 			if(jar.getName().toLowerCase().endsWith(".jar")) {
 				ZipFile zf = new ZipFile(jar.getAbsolutePath());
 				// Check if jar is a valid zip
@@ -85,11 +88,11 @@ public class ModuleManager {
 		Events.fire(Events.Type.MODULES_LOADED);
 		
 		// Loop through modules and sort them
-		_priorities.put(Priority.LOW, new CopyOnWriteArrayList<TwineModule>());
-		_priorities.put(Priority.MEDIUM, new CopyOnWriteArrayList<TwineModule>());
-		_priorities.put(Priority.HIGH, new CopyOnWriteArrayList<TwineModule>());
+		_priorities.put(Priority.LOW, new CopyOnWriteArrayList<>());
+		_priorities.put(Priority.MEDIUM, new CopyOnWriteArrayList<>());
+		_priorities.put(Priority.HIGH, new CopyOnWriteArrayList<>());
 		for(TwineModule module : _modules) {
-			if(compatible(module.twineVersion()) || (boolean) Twine.config().get("ignoreModuleCheck")) {
+			if(compatible(module.twineVersion()) || (boolean) config().getNode("twine.ignoreModuleCheck")) {
 				_priorities.get(module.priority()).add(module);
 			} else {
 				Twine.logger().error("Module \""+module.name()+"\" is written for Twine version \""+module.twineVersion()+"\" which is incompatible with version "+Twine.version()+".");
@@ -186,7 +189,7 @@ public class ModuleManager {
 			Twine.logger().error("Error occurred while shutting down module \""+m.name()+"\":");
 			Twine.logger().error(e.getClass().getName()+": "+e.getMessage()+"");
 			for(StackTraceElement ste : e.getStackTrace()) {
-				Twine.logger().error(ste.getClassName()+"("+ste.getFileName()+":"+Integer.toString(ste.getLineNumber())+")");
+				Twine.logger().error(ste.getClassName()+"("+ste.getFileName()+":"+ste.getLineNumber()+")");
 			}
 		}
 	}
@@ -203,7 +206,7 @@ public class ModuleManager {
 			Twine.logger().error("Error occurred while initializing module \""+m.name()+"\":");
 			Twine.logger().error(e.getClass().getName()+": "+e.getMessage()+"");
 			for(StackTraceElement ste : e.getStackTrace()) {
-				Twine.logger().error(ste.getClassName()+"("+ste.getFileName()+":"+Integer.toString(ste.getLineNumber())+")");
+				Twine.logger().error(ste.getClassName()+"("+ste.getFileName()+":"+ste.getLineNumber()+")");
 			}
 			Twine.logger().info("The module will be removed from the modules stack, but can still be referenced by other modules.");
 			_modules.remove(m);
@@ -221,7 +224,7 @@ public class ModuleManager {
 			Twine.logger().error("Error occurred while pre-initializing module \""+m.name()+"\":");
 			Twine.logger().error(e.getClass().getName()+": "+e.getMessage()+"");
 			for(StackTraceElement ste : e.getStackTrace()) {
-				Twine.logger().error(ste.getClassName()+"("+ste.getFileName()+":"+Integer.toString(ste.getLineNumber())+")");
+				Twine.logger().error(ste.getClassName()+"("+ste.getFileName()+":"+ste.getLineNumber()+")");
 			}
 			Twine.logger().info("The module will be removed from the modules stack, but can still be referenced by other modules.");
 			_modules.remove(m);
@@ -232,10 +235,18 @@ public class ModuleManager {
 	// Returns whether the specified compatible version String is compatible with this version of Twine
 	private static boolean compatible(String ver) {
 		// Parse out version numbers
-		String sver = Twine.version().toLowerCase();
-		int lvl = verLvl(sver);
-		if(sver.contains("-")) sver = sver.split("-")[0];
-		double sverNum = Double.parseDouble(sver);
+		String serverVer = Twine.version().toLowerCase();
+		int majorVer = Integer.parseInt(ver.substring(0, ver.indexOf('.')));
+		int serverMajorVer = Integer.parseInt(serverVer.substring(0, serverVer.indexOf('.')));
+
+		// Check if server major version is higher than the module's
+		if(serverMajorVer > majorVer) {
+			return false;
+		}
+
+		int lvl = verLvl(serverVer);
+		if(serverVer.contains("-")) serverVer = serverVer.split("-")[0];
+		double sverNum = Double.parseDouble(serverVer);
 		
 		int vlvl = verLvl(ver);
 		boolean plus = ver.endsWith("+");

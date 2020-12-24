@@ -9,9 +9,9 @@ import java.util.HashMap;
  * @since 1.0-alpha
  */
 public class ArgParser {
-	private HashMap<String, ArrayList<String>> _options = new HashMap<String, ArrayList<String>>();
-	private Character[] _flags;
-	private String[] _args;
+	private final HashMap<String, ArrayList<String>> _options = new HashMap<>();
+	private final Character[] _flags;
+	private final String[] _args;
 
  	/**
 	 * Instantiates a new ArgParser object and parses the provided arguments.
@@ -19,8 +19,8 @@ public class ArgParser {
 	 * @since 1.0-alpha
 	 */
 	public ArgParser(String[] args) {
-		ArrayList<Character> flags = new ArrayList<Character>();
-		ArrayList<String> tmpArgs = new ArrayList<String>();
+		ArrayList<Character> flags = new ArrayList<>();
+		ArrayList<String> tmpArgs = new ArrayList<>();
 
 		for(String arg : args) {
 			if(arg.startsWith("--") && arg.length() > 2) {
@@ -35,7 +35,7 @@ public class ArgParser {
 				}
 
 				if(!_options.containsKey(argStr))
-					_options.put(argStr, new ArrayList<String>());
+					_options.put(argStr, new ArrayList<>());
 				if(valStr != null && !_options.get(argStr).contains(valStr))
 					_options.get(argStr).add(valStr);
 			} else if(arg.startsWith("-") && arg.length() > 1 && arg.charAt(1) != '-') {

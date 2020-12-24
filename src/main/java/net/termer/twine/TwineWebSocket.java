@@ -28,7 +28,7 @@ public class TwineWebSocket {
 	}
 	
 	/**
-	 * Returns the BridgeOptions for the websocket handler built by this utility
+	 * Returns the BridgeOptions for the WebSocket handler built by this utility
 	 * @return the BridgeOptions
 	 * @since 1.0-alpha
 	 */
@@ -45,7 +45,7 @@ public class TwineWebSocket {
 	}
 	
 	/**
-	 * Allows websocket clients to send messages to the specified event bus channel
+	 * Allows WebSocket clients to send messages to the specified event bus channel
 	 * @param channel The channel to allow
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
@@ -55,7 +55,7 @@ public class TwineWebSocket {
 		return this;
 	}
 	/**
-	 * Allows websocket clients to receive messages from the specified event bus channel
+	 * Allows WebSocket clients to receive messages from the specified event bus channel
 	 * @param channel The channel to allow
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
@@ -65,7 +65,7 @@ public class TwineWebSocket {
 		return this;
 	}
 	/**
-	 * Allows websocket clients to sesnd messages to all channels that match the specified channel regex
+	 * Allows WebSocket clients to sesnd messages to all channels that match the specified channel regex
 	 * @param channelRegex The channel to allow
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha
@@ -75,7 +75,7 @@ public class TwineWebSocket {
 		return this;
 	}
 	/**
-	 * Allows websocket clients to receive messages from all channels that match the specified channel regex
+	 * Allows WebSocket clients to receive messages from all channels that match the specified channel regex
 	 * @param channelRegex The channel to allow
 	 * @return this, to be used fluently
 	 * @since 1.0-alpha

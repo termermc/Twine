@@ -1,5 +1,7 @@
 package net.termer.twine.documents;
 
+import io.vertx.core.Future;
+
 /**
  * Interface for document processing
  * @author termer
@@ -9,7 +11,7 @@ public interface DocumentProcessor {
 	/**
 	 * Processes or manipulates the provided DocumentOptions object
 	 * @param options the document options
-	 * @since 1.0-alpha
+	 * @since 2.0
 	 */
-	public void process(DocumentOptions options);
+	void process(DocumentOptions options);
 }
