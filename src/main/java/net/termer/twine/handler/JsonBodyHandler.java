@@ -22,8 +22,10 @@ public class JsonBodyHandler implements Handler<RoutingContext> {
 
                 // Add data to form attributes and params
                 for(String key : json.keySet()) {
-                    r.request().formAttributes().add(key, json.get(key).toString());
-                    r.request().params().add(key, json.get(key).toString());
+                    String str = json.get(key) == null ? json.get(key).toString() : "false";
+
+                    r.request().formAttributes().add(key, str);
+                    r.request().params().add(key, str);
                 }
             } catch (DecodeException e) {
                 // The body had a syntax error in it, send a 400 error
