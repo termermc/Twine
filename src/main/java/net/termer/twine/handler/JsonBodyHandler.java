@@ -2,6 +2,7 @@ package net.termer.twine.handler;
 
 import io.vertx.core.Handler;
 import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.Map;
@@ -17,15 +18,19 @@ public class JsonBodyHandler implements Handler<RoutingContext> {
         String contentType = r.request().getHeader("Content-Type");
         if(contentType != null && (contentType.equalsIgnoreCase("application/json") || contentType.equalsIgnoreCase("text/json"))) {
             try {
-                // Parse JSON to Map
-                Map<String, Object> json = r.getBodyAsJson().getMap();
+                JsonObject jsonBody = r.getBodyAsJson();
 
-                // Add data to form attributes and params
-                for(String key : json.keySet()) {
-                    String str = json.get(key) == null ? json.get(key).toString() : "false";
+                if(jsonBody != null) {
+                    // Parse JSON to Map
+                    Map<String, Object> json = jsonBody.getMap();
 
-                    r.request().formAttributes().add(key, str);
-                    r.request().params().add(key, str);
+                    // Add data to form attributes and params
+                    for(String key : json.keySet()) {
+                        String str = json.get(key) == null ? json.get(key).toString() : "false";
+
+                        r.request().formAttributes().add(key, str);
+                        r.request().params().add(key, str);
+                    }
                 }
             } catch (DecodeException e) {
                 // The body had a syntax error in it, send a 400 error
