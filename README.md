@@ -56,7 +56,7 @@ To cluster instances, you'll need an [Apache Zookeeper](https://zookeeper.apache
 Enabling clustering is done by setting `vertx.cluster.enable` to `true` in `twine.yml`.
 From there, you need to configure the rest of the settings in `vertx.cluster` to match settings for your Zookeeper server.
 
-## Running Twine Behing A Reverse Proxy
+## Running Twine Behind A Reverse Proxy
 If you are running Twine behind a reverse proxy such as Nginx, you should make sure `server.respectXFF` is set to `true` in `twine.yml`, and that `X-Forwarded-For` and `Host` headers are being sent by the reverse proxy. 
 
 ## Module Development
