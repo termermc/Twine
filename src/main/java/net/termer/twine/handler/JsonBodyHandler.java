@@ -2,9 +2,11 @@ package net.termer.twine.handler;
 
 import io.vertx.core.Handler;
 import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,10 +28,22 @@ public class JsonBodyHandler implements Handler<RoutingContext> {
 
                     // Add data to form attributes and params
                     for(String key : json.keySet()) {
-                        String str = json.get(key) == null ? json.get(key).toString() : "false";
+                        // Only add attribute if not null
+                        Object val = json.get(key);
+                        if(val != null) {
+                            String str;
 
-                        r.request().formAttributes().add(key, str);
-                        r.request().params().add(key, str);
+                            // Handle specific JSON types and serialize them
+                            if(val instanceof Map)
+                                str = new JsonObject((Map<String, Object>) val).toString();
+                            else if(val instanceof List)
+                                str = new JsonArray((List<Object>) val).toString();
+                            else
+                                str = val.toString();
+
+                            r.request().formAttributes().add(key, str);
+                            r.request().params().add(key, str);
+                        }
                     }
                 }
             } catch (DecodeException e) {
