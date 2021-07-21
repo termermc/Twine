@@ -73,3 +73,16 @@ Dependency Changes
 Misc. Changes
  - Added support for JSON bodies being parsed into form attributes and params
  - Changed option "--recreate-configs" to "--recreate-config", flag "-r" is unchanged
+
+=== Version 2.1 ===
+Breaking changes: No
+New Features(s): No
+Bugfixes: Yes
+
+Minor bugfix release that fixes some small (but important) issues with handling JSON request bodies.
+
+Changes
+ - Fixed NullPointerException caused by null values in JSON request bodies
+ - Fixed JSON objects and arrays being serialized as Java Maps and Lists instead of JSON in JSON request bodies
+ - Updated all libraries to latest version, including Vert.x to 4.1.2 (Some small breaking changes), and Kotlin (stdlib v1.4.21, coroutines v1.5.1)
+ - Upgraded build system to Gradle 7.1.1
