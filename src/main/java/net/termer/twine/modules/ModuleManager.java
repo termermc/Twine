@@ -33,6 +33,7 @@ public class ModuleManager {
 	 * @throws IOException if loading a module fails
 	 * @since 1.0-alpha
 	 */
+	@SuppressWarnings("deprecation")
 	public static void loadModules() throws IOException {
 		ArrayList<URL> urls = new ArrayList<>();
 		
