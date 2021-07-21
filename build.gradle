@@ -1,9 +1,9 @@
 buildscript {
-    ext.kotlin_version = '1.3.50'
+    ext.kotlin_version = '1.5.21'
 }
 
 plugins {
-	id 'com.github.johnrengelman.shadow' version '5.1.0'
+	id 'com.github.johnrengelman.shadow' version '7.0.0'
 	id 'java-library'
 	id 'maven-publish'
 	id 'signing'
@@ -25,7 +25,7 @@ repositories {
 
 dependencies {
     api 'org.apache.commons:commons-math3:3.6.1'
-    api 'com.google.guava:guava:23.0'
+    api 'com.google.guava:guava:30.1.1-jre'
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
@@ -108,29 +108,29 @@ configurations.all {
 
 dependencies {
 	// Vert.x dependencies
-	api 'io.vertx:vertx-core:4.0.0'
-	api 'io.vertx:vertx-web:4.0.0'
-	api 'io.vertx:vertx-zookeeper:4.0.0'
-	api "io.vertx:vertx-lang-kotlin:4.0.0"
-	api "io.vertx:vertx-lang-kotlin-coroutines:4.0.0"
-	api 'io.vertx:vertx-web-validation:4.0.0'
+	api 'io.vertx:vertx-core:4.1.2'
+	api 'io.vertx:vertx-web:4.1.2'
+	api 'io.vertx:vertx-zookeeper:4.1.2'
+	api "io.vertx:vertx-lang-kotlin:4.1.2"
+	api "io.vertx:vertx-lang-kotlin-coroutines:4.1.2"
+	api 'io.vertx:vertx-web-validation:4.1.2'
 	
 	// Kotlin dependencies
-	api 'org.jetbrains.kotlin:kotlin-stdlib:1.4.20'
-	api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.6'
+	api 'org.jetbrains.kotlin:kotlin-stdlib:1.4.21'
+	api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1'
 	
 	// Misc. dependencies
-	implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '2.6.4'
-	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.27'
+	implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '2.9.0'
+	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.29'
 	implementation group: 'org.json', name: 'json', version: '20190722'
 	
 	// SLF4J dependencies
-	api group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
-	api group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
+	api group: 'org.slf4j', name: 'slf4j-api', version: '1.7.32'
+	api group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.32'
 	
 	// Database dependencies
-	api 'io.vertx:vertx-pg-client:4.0.0'
-	api 'io.vertx:vertx-mysql-client:4.0.0'
+	api 'io.vertx:vertx-pg-client:4.1.2'
+	api 'io.vertx:vertx-mysql-client:4.1.2'
 }
 
 // Execute shadowJar when running build
