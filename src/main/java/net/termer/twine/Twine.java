@@ -35,8 +35,8 @@ public class Twine {
 	
 	// Instance variables
 	private static ArgParser _args;
-	private static final String _verStr = "2.0";
-	private static final int _verInt = 9;
+	private static final String _verStr = "2.1";
+	private static final int _verInt = 10;
 	private static final Logger _logger = LoggerFactory.getLogger(Twine.class);
 	private static YamlConfig _conf = null;
 	private static Domains _domains = null;
