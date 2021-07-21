@@ -11,7 +11,7 @@ plugins {
 
 archivesBaseName = 'twine'
 group = 'net.termer.twine'
-version = '2.0'
+version = '2.1'
 
 jar {
    manifest {
