@@ -11,7 +11,7 @@ plugins {
 
 archivesBaseName = 'twine'
 group = 'net.termer.twine'
-version = '2.1'
+version = '2.1a'
 
 jar {
    manifest {
@@ -20,7 +20,7 @@ jar {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -34,6 +34,10 @@ dependencies {
 java {
 	withJavadocJar()
 	withSourcesJar()
+}
+
+components.java.withVariantsFromConfiguration(configurations.shadowRuntimeElements) {
+	skip()
 }
 
 publishing {
@@ -85,6 +89,8 @@ publishing {
 		}
 	}
 }
+
+project.configurations.archives.artifacts.clear();
 
 signing {
 	sign publishing.publications.mavenJava
