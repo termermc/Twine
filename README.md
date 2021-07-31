@@ -9,7 +9,7 @@ To obtain a pre-compiled release of Twine, check the [releases](https://github.c
 ## Building
 Before building, be sure you have at least JDK 8 and Gradle installed.
 To build on Unix/Unix-like systems (Darwin, Linux, BSD) run `./gradlew build` and on Windows run `gradlew.bat build`.
-The compiled executable will be in `build/libs/` as `twine-all.jar`.
+The compiled executable will be in `build/libs/` as `twine-2.2-all.jar`.
 
 ## Getting Started
 To start Twine, execute the jar with the `-s` option. This will generate all necessary configuration files and start the server. Once you start the server for the first time, terminate it and then observe the directory you executed in. Now you may proceed to the **Configuration** guide.

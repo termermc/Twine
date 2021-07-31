@@ -9,22 +9,22 @@ Maven dependency:
 <dependency>
   <groupId>net.termer.twine</groupId>
   <artifactId>twine</artifactId>
-  <version>2.1</version>
+  <version>2.2</version>
   <type>module</type>
 </dependency>
 ```
 
 Gradle dependency:
 ```groovy
-implementation 'net.termer.twine:twine:2.1'
+implementation 'net.termer.twine:twine:2.2'
 ```
 
-Once you've included it, create a new class called `Module` that implements the interface [TwineModule](https://termer.net/javadoc/twine/2.1/net/termer/twine/modules/TwineModule.html).
+Once you've included it, create a new class called `Module` that implements the interface [TwineModule](https://termer.net/javadoc/twine/2.2/net/termer/twine/modules/TwineModule.html).
 
 
 
 ## Javadoc
-The Twine Javadoc for module development is located [here](https://termer.net/javadoc/twine/2.1/index.html).
+The Twine Javadoc for module development is located [here](https://termer.net/javadoc/twine/2.2/index.html).
 
 ## TwineModule Interface
 The methods that are defined in `TwineModule` are as follows:
@@ -83,7 +83,7 @@ public class Module implements TwineModule {
 	}
 
 	public String twineVersion() {
-		return "2.1+";
+		return "2.2+";
 	}
 }
 ``` 

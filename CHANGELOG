@@ -86,3 +86,13 @@ Changes
  - Fixed JSON objects and arrays being serialized as Java Maps and Lists instead of JSON in JSON request bodies
  - Updated all libraries to latest version, including Vert.x to 4.1.2 (Some small breaking changes), and Kotlin (stdlib v1.4.21, coroutines v1.5.1)
  - Upgraded build system to Gradle 7.1.1
+
+=== Version 2.2 ==
+Breaking changes: No
+New Features(s): No
+Bugfixes: Yes
+
+Minor bugfix release that fixes body sizes over 2048 bytes being served with a 400 Bad Request error.
+
+Changes
+ - Fixed no max form attributes size being provided, which was required for the new Vert.x version

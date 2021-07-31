@@ -14,7 +14,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 
 archivesBaseName = 'twine'
 group = 'net.termer.twine'
-version = '2.1b'
+version = '2.2'
 
 jar {
    manifest {
