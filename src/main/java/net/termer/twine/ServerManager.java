@@ -42,7 +42,7 @@ public class ServerManager {
 	private static SessionHandler _sess = null;
 	private static StaticHandler _staticHandler = null;
 	private static BodyHandler _bodyHandler = null;
-	private static JsonBodyHandler _jsonBodyHandler = new JsonBodyHandler();
+	private static final JsonBodyHandler _jsonBodyHandler = new JsonBodyHandler();
 	private static final LoggingHandler _loggingHandler = new LoggingHandler();
 	private static final DomainHandler _domainHandler = new DomainHandler();
 	private static final NotFoundHandler _notFoundHandler = new NotFoundHandler();
@@ -128,8 +128,9 @@ public class ServerManager {
 		// Setup server
 		_router = Router.router(_vertx);
 		_httpOps = new HttpServerOptions()
-			.setLogActivity((boolean) config().getNode("server.logging.enable"))
-			.setCompressionSupported((boolean) config().getNode("server.compression"));
+				.setLogActivity((boolean) config().getNode("server.logging.enable"))
+				.setCompressionSupported((boolean) config().getNode("server.compression"))
+				.setMaxFormAttributeSize((int) config().getNode("server.maxBodySize"));
 		
 		// Instantiate WebSocket utility
 		_ws = new TwineWebSocket(_vertx, (int) config().getNode("server.websocket.maxBytesStreaming"));
@@ -341,6 +342,7 @@ public class ServerManager {
 				.setBodyLimit((int) config().getNode("server.maxBodySize"));
 		_httpOps
 				.setLogActivity((boolean) config().getNode("server.logging.enable"))
-				.setCompressionSupported((boolean) Twine.config().getNode("server.compression"));
+				.setCompressionSupported((boolean) Twine.config().getNode("server.compression"))
+				.setMaxFormAttributeSize((int) config().getNode("server.maxBodySize"));
 	}
 }
